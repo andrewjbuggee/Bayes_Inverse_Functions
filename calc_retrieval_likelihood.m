@@ -46,9 +46,9 @@ for pp = 1:num_pixels
     
     % --- Want to perturb your initial guesses with gaussian noise? ---
     mean_r = modis.cloud.effRadius17(row,col);
-    var_r = 0.5*mean_r;
+    var_r = 0.1*mean_r;
     mean_T = modis.cloud.optThickness17(row,col);
-    var_T = 0.5*mean_T;
+    var_T = 0.1*mean_T;
     model_mean(2) = normrnd(mean_r,var_r); % effetive radius expected value
     model_mean(3) = normrnd(mean_T,var_T); % optical depth expected value
     
