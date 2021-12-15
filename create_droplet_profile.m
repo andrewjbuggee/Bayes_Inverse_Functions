@@ -14,10 +14,24 @@ r_bottom = inputs.model.profile.r_bottom;
 % we create a droplet profile for each pixel that we wish to investigate
 tau_c = data_inputs.truthTable.modisT17;
 
+
+
+
 % define how many points along our drolet profile we wish to plot
 num_query_points = 100;
 r_tau = zeros(length(tau_c),num_query_points);
 r_z = zeros(length(tau_c),num_query_points);
+
+% ---- for now.....
+
+% no matter the profile, we are create a droplet profile that extends 1 km,
+% from the base of the cloud at 2km above the ground to the top of the
+% cloud at 3 km above the ground
+% we only define the values at the base of each layer
+h = 900; % meters - cloud thickness
+z0 = 2000; % meters - cloud base location
+z = linspace(z0,(z0+h),num_query_points); % meters - the locations in geometric space that define the bottom of each layer within the cloud
+
 
 if strcmp(profile_type,'subadiabatic_aloft')
     
@@ -42,6 +56,7 @@ elseif strcmp(profile_type,'adiabatic')
     a1 = r_top^(2*x + 3/x) - r_bottom^(2*x + 3/x);
     
     % boundary conditions for r as a function of tau
+    
     b0 = r_bottom^3;
     b1 = r_top^3 - r_bottom^3;
     

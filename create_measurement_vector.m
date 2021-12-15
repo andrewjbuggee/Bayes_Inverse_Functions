@@ -10,7 +10,7 @@ function y = create_measurement_vector(modis,data_inputs)
 
 pixels2use = data_inputs.pixels2use;
 refl_data = cat(3,modis.EV.m250.reflectance,modis.EV.m500.reflectance);
-bands2run = data_inputs.inputs.bands2run;
+bands2run = 1:7;
 num_pixels = data_inputs.inputs.pixels.num_2calculate;
 
 % SWITCH TO 1KM DATA

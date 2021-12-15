@@ -38,10 +38,10 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
         % lets create the variance and mean for each model parameter
         bayes_inputs.measurement.variance = [4,10]; % variance for the effective radius (microns squared) and optical thickness respectively
         bayes_inputs.measurement.mean = [10,15]; % expected values for the effective radius (microns) and the optical depth
-        bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+        bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
         
         error('mvnpdf is not properly set up yet!')
-        bayes_inputs.measurement.prior = mvnpdf(bayes_inputs.measurement.mean,bayes_inputs.measurement.covaraince);
+        bayes_inputs.measurement.prior = mvnpdf(bayes_inputs.measurement.mean,bayes_inputs.measurement.covariance);
         
     elseif strcmp(measurement_prior,'standard_normal')
         % if the standard normal option is chosen, the code assumes the model
@@ -52,7 +52,7 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
         bayes_inputs.measurement.mean = zeros(1,bayes_inputs.num_observations);
         
         % create the covaraince matrix of the model parameters
-        bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+        bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
         
         error('standard normal option is not properly set up yet!')
         
@@ -102,7 +102,7 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
         % create the covaraince matrix of the model parameters
         % if the covariance matrix is diagonal, then we are assuming each
         % measurement (spectral channel) is independent of one another
-        bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+        bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
         
         % lets create our measurement pdf at each wavelength. We do this by
         % sampling a gaussian pdf with a  mean and variance as defined above
@@ -114,18 +114,18 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
     
 elseif strcmp(bayes_inputs.data_type,'modis') == true
     
-    bands2run = data_inputs.inputs.bands2run;
-    bayes_inputs.num_observations = length(bands2run);
+    bayes_inputs.num_observations = 7;
+
     
     if strcmp(measurement_prior,'custom')
         
         % lets create the variance and mean for each model parameter
         bayes_inputs.measurement.variance = [4,10]; % variance for the effective radius (microns squared) and optical thickness respectively
         bayes_inputs.measurement.mean = [10,15]; % expected values for the effective radius (microns) and the optical depth
-        bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+        bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
         
         error('mvnpdf is not properly set up yet!')
-        bayes_inputs.measurement.prior = mvnpdf(bayes_inputs.measurement.mean,bayes_inputs.measurement.covaraince);
+        bayes_inputs.measurement.prior = mvnpdf(bayes_inputs.measurement.mean,bayes_inputs.measurement.covariance);
         
     elseif strcmp(measurement_prior,'standard_normal')
         % if the standard normal option is chosen, the code assumes the model
@@ -136,7 +136,7 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         bayes_inputs.measurement.mean = zeros(1,bayes_inputs.num_observations);
         
         % create the covaraince matrix of the model parameters
-        bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+        bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
         
         error('standard normal option is not properly set up yet!')
         
@@ -157,8 +157,6 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         
         wavelengths = [data_struct.EV.m250.bands.center;data_struct.EV.m500.bands.center]; % ---**--- Change this after the modis structure is fixes
         
-        % only use the bands that were run to create the data table
-        wavelengths = wavelengths(bands2run);
         
         
         T_sun = 5800; % Kelvin - temperature of the photosphere of the sun
@@ -190,20 +188,20 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         
         if strcmp(covariance_type,'computed') == true
             data = cat(3,data_struct.EV.m250.reflectance,data_struct.EV.m500.reflectance);
-            data = data(:,:,bands2run);
-            for bb = 1:length(bands2run)
+            data = data(:,:,bayes_inputs.num_observations);
+            for bb = 1:length(bayes_inputs.num_observations)
                 for ii = 1:length(data_inputs.pixels2use.res500m.row)
                     data2run(ii,bb) = data(data_inputs.pixels2use.res500m.row(ii),data_inputs.pixels2use.res500m.col(ii),bb);
                 end
             end
             
-            bayes_inputs.measurement.covaraince = cov(data2run);
+            bayes_inputs.measurement.covariance = cov(data2run);
             
         elseif strcmp(covariance_type,'independent') == true
             % create the covaraince matrix of the model parameters
             % if the covariance matrix is diagonal, then we are assuming each
             % measurement (spectral channel) is independent of one another
-            bayes_inputs.measurement.covaraince = diag(bayes_inputs.measurement.variance);
+            bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
             
         else
             
