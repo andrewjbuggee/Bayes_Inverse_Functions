@@ -42,6 +42,18 @@ for pp = 1:num_pixels
     initial_guess = [biSpectral_estimate(pp,1),biSpectral_estimate(pp,1),biSpectral_estimate(pp,2)];
     retrieval(:,1,pp) = initial_guess;
     
+    % ----- USING King and Vaughn (2012) Method -----
+    % -----------------------------------------------
+    % we set the a priori guess to be our initial guess. That way, any
+    % change in our posterior tells us the information gained over the
+    % bi-spectral method
+    
+    model_mean = initial_guess';
+    
+    % King and Vaughn define the uncertainty in tau_c as 10% the value
+    % found by the bi-spectral method
+    model_cov(3,3) = 0.1 * initial_guess(3);
+    
     % ---- define pixel geometry -----
     pixel_row = data_inputs.pixels2use.res1km.row(pp);
     pixel_col = data_inputs.pixels2use.res1km.col(pp);
@@ -54,6 +66,7 @@ for pp = 1:num_pixels
         
         % at each iteration I need to compute the forward model at my current
         % state vector estimate
+        
         
         current_guess = retrieval(:,ii,pp);
         
@@ -71,6 +84,27 @@ for pp = 1:num_pixels
         
         new_guess = model_mean + model_cov * jacobian' * (jacobian * model_cov * jacobian' + measurement_cov)^(-1) * (residual(:,ii,pp) + jacobian * diff_guess_prior(:,ii,pp));
         
+        % when using the Hu and Stamnes parameterization, re must be larger
+        % than 2.5 and smaller than 60 microns. If the new guess is out of
+        % these bounds, fix it!
+        if new_guess(1)>60
+            disp([newline,'r_top = ',num2str(new_guess(1)),'. Set to 59.5 \mum'])
+            new_guess(1) = 59.5; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(1)<2.5
+            disp([newline,'r_top = ',num2str(new_guess(1)),'. Set to 2.6 \mum'])
+            new_guess(1) = 2.6; % microns
+        end
+        
+        if new_guess(2)>60
+            disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 59.5 \mum'])
+            new_guess(2) = 59.5; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(2)<2.5
+            disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 2.6 \mum'])
+            new_guess(2) = 2.6; % microns
+        end
+        
+        
+        % store the latest guess 
         retrieval(:,ii+1,pp) = new_guess;
         
     end
