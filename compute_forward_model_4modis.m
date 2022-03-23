@@ -8,25 +8,25 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4modis(modis,retrieval,bayes_inputs,pixel_row,pixel_col,INP_folderName,saveCalculations_fileName)
+function measurement_estimate = compute_forward_model_4modis(modis,current_guess,bayes_inputs,pixel_row,pixel_col,INP_folderName,saveCalculations_fileName)
 
 % --- compute the forward model at our current estimate ---
-r_top = retrieval(1);
-r_bottom = retrieval(2);
-tau_c = retrieval(3);
+r_top = current_guess(1);
+r_bottom = current_guess(2);
+tau_c = current_guess(3);
 
 profile_type = bayes_inputs.model.profile.type; % type of water droplet profile
-
+wavelength_tau_c = bayes_inputs.model.profile.lambda_tau;                       % nm - Wavelength used for cloud optical depth calculation
 % ----------------------------------------------------------
 
 % --------------------------------------------
 % create water cloud file with droplet profile
 % --------------------------------------------
 
-wc_profile_fileName = write_waterCloud_files_with_profile(r_top,r_bottom,tau_c,profile_type);
+wc_profile_fileName = write_waterCloud_files_with_profile(r_top,r_bottom,tau_c,profile_type, wavelength_tau_c);
 
 % ----- Write an INP file --------
-names.inp = write_INP_4_MODIS_singlePixel_withProfile(wc_profile_fileName,INP_folderName,modis,pixel_row,pixel_col,retrieval);
+names.inp = write_INP_4_MODIS_singlePixel_withProfile(wc_profile_fileName,INP_folderName,modis,pixel_row,pixel_col,current_guess);
     
 % now lets write the output names
     

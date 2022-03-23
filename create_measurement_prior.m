@@ -160,7 +160,7 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         
         
         T_sun = 5800; % Kelvin - temperature of the photosphere of the sun
-        radiance = planks_function(wavelengths,T_sun,'microns'); % watts/m^2/micron/sr
+        radiance = plancks_function(wavelengths,T_sun,'microns'); % watts/m^2/micron/sr
         
         % now lets compute the spectral radiance at the top of Earths
         % atmosphere
