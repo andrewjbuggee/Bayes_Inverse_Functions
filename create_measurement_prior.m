@@ -30,7 +30,7 @@ covariance_type = bayes_inputs.measurement.covariance_type;
 
 if strcmp(bayes_inputs.data_type,'aviris')==true
     
-    bayes_inputs.num_observations = length(data_struct.wavelengths); % number of spectral channels, for this application
+    bayes_inputs.spectral_bins = length(data_struct.wavelengths); % number of spectral channels, for this application
     
     
     if strcmp(measurement_prior,'custom')
@@ -48,8 +48,8 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
         % parameters take on the standard normal gaussian, where the the
         % expected value for each parameter is 0, and the variance is 1
         
-        bayes_inputs.measurement.varaince = ones(1,bayes_inputs.num_observations);
-        bayes_inputs.measurement.mean = zeros(1,bayes_inputs.num_observations);
+        bayes_inputs.measurement.varaince = ones(1,bayes_inputs.spectral_bins);
+        bayes_inputs.measurement.mean = zeros(1,bayes_inputs.spectral_bins);
         
         % create the covaraince matrix of the model parameters
         bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
@@ -114,7 +114,9 @@ if strcmp(bayes_inputs.data_type,'aviris')==true
     
 elseif strcmp(bayes_inputs.data_type,'modis') == true
     
-    bayes_inputs.num_observations = 7;
+    % This defines the number of spectral channels used to create the
+    % measurement covariance
+    bayes_inputs.spectral_bins = size(data_struct,3);
 
     
     if strcmp(measurement_prior,'custom')
@@ -132,8 +134,8 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         % parameters take on the standard normal gaussian, where the the
         % expected value for each parameter is 0, and the variance is 1
         
-        bayes_inputs.measurement.varaince = ones(1,bayes_inputs.num_observations);
-        bayes_inputs.measurement.mean = zeros(1,bayes_inputs.num_observations);
+        bayes_inputs.measurement.varaince = ones(1,bayes_inputs.spectral_bins);
+        bayes_inputs.measurement.mean = zeros(1,bayes_inputs.spectral_bins);
         
         % create the covaraince matrix of the model parameters
         bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
@@ -181,33 +183,6 @@ elseif strcmp(bayes_inputs.data_type,'modis') == true
         bayes_inputs.measurement.mean = radiance;
         bayes_inputs.measurement.variance = ones(length(wavelengths),1)*bayes_inputs.measurement.uncertainty; % Radiometric variance is some percentage of the mean
         
-        % --------------------------------------------------------
-        % Create the covariance matrix by taking the cross
-        % correlation between spectral channels with the modis data
-        % ---------------------------------------------------------
-        
-        if strcmp(covariance_type,'computed') == true
-            data = cat(3,data_struct.EV.m250.reflectance,data_struct.EV.m500.reflectance);
-            data = data(:,:,bayes_inputs.num_observations);
-            for bb = 1:length(bayes_inputs.num_observations)
-                for ii = 1:length(data_inputs.pixels2use.res500m.row)
-                    data2run(ii,bb) = data(data_inputs.pixels2use.res500m.row(ii),data_inputs.pixels2use.res500m.col(ii),bb);
-                end
-            end
-            
-            bayes_inputs.measurement.covariance = cov(data2run);
-            
-        elseif strcmp(covariance_type,'independent') == true
-            % create the covaraince matrix of the model parameters
-            % if the covariance matrix is diagonal, then we are assuming each
-            % measurement (spectral channel) is independent of one another
-            bayes_inputs.measurement.covariance = diag(bayes_inputs.measurement.variance);
-            
-        else
-            
-            error('I dont understand how you want me to compute the covariance')
-            
-        end
         
         
         
