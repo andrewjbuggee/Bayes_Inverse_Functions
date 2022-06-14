@@ -1,30 +1,30 @@
 
-function [output] = calc_retrieval_gauss_newton_4modis(bayes_inputs,modis,data_inputs)
+function [output] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs, pixels2use)
 
 % ----- unpack inputs -----
 
-model_mean = bayes_inputs.model.mean'; % a priori guess
-model_cov = bayes_inputs.model.covariance; % model parameter covariance matrix
-measurement_cov = bayes_inputs.measurement.covariance; % measurement covaraince matrix
+model_mean = GN_inputs.model.mean'; % a priori expected value for the model parameters
+model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
+measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 
-saveCalculations_fileName = bayes_inputs.save_calcs_fileName; % where to save the computed data
+% Create the measurement vectors for each pixel!
+% Each column is associated with a specific pixel, and each row represents
+% the reflectance measurement at a specific modis band
+measurements = create_measurement_vector(modis,modisInputs,GN_inputs, pixels2use); % each column represents one pixel
 
-%model_mean = bayes_inputs.model.mean; % a priori expected value for the model parameters
+num_iterations = GN_inputs.GN_iterations; % number of iterations to preform
+num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve for
 
-measurements = create_measurement_vector(modis,data_inputs); % each column represents one pixel
-biSpectral_estimate = [data_inputs.truthTable.estR17,data_inputs.truthTable.estT17];
+% The number of pixels to solve for using the Gauss-Newton method comes
+% from the Gauss-Newton input structure
+num_pixels = GN_inputs.numPixels2Calculate;
 
-num_iterations = bayes_inputs.GN_iterations; % number of iterations to preform
-num_parameters = bayes_inputs.num_model_parameters; % number of parameters to solve for
-num_pixels = data_inputs.inputs.pixels.num_2calculate;
+% ----- define number of spectral bands to use -----
 
-% ----- unpack look-up table information -----
-
-num_bands = bayes_inputs.measurement.num; % number of spectral bands ran in the RT model
+num_bands = GN_inputs.numBands2use; % number of spectral bands to use
 
 
 % --- Create iterative Gauss-Newton Solver ----
-
 
 retrieval = zeros(num_parameters,num_iterations+1,num_pixels); % we include the starting point, which is outside the number of iterations
 residual = zeros(num_bands,num_iterations,num_pixels); % we include the starting point, which is outside the number of iterations
@@ -39,24 +39,20 @@ for pp = 1:num_pixels
     % value. This is our initial guess. By setting this to be the a priori
     % guess we can compute the inforamtion gain between the bi-spectral
     % approach and the hyperspectal approach
-    initial_guess = [biSpectral_estimate(pp,1),biSpectral_estimate(pp,1),biSpectral_estimate(pp,2)];
+    initial_guess = model_mean;
     retrieval(:,1,pp) = initial_guess;
     
+    % -----------------------------------------------
     % ----- USING King and Vaughn (2012) Method -----
     % -----------------------------------------------
     % we set the a priori guess to be our initial guess. That way, any
     % change in our posterior tells us the information gained over the
     % bi-spectral method
     
-    model_mean = initial_guess';
-    
-    % King and Vaughn define the uncertainty in tau_c as 10% the value
-    % found by the bi-spectral method
-    model_cov(3,3) = 0.1 * initial_guess(3);
     
     % ---- define pixel geometry -----
-    pixel_row = data_inputs.pixels2use.res1km.row(pp);
-    pixel_col = data_inputs.pixels2use.res1km.col(pp);
+    pixel_row = pixels2use.res1km.row(pp);
+    pixel_col = pixels2use.res1km.col(pp);
     
     
     
@@ -70,11 +66,12 @@ for pp = 1:num_pixels
         
         current_guess = retrieval(:,ii,pp);
         
-        % we compute the forward model at our previous estimate to the
-        % state vector
-        measurement_estimate = compute_forward_model_4modis(modis,current_guess,bayes_inputs,pixel_row,pixel_col,data_inputs.inputs.INP_folderName,saveCalculations_fileName)';
+        % we compute the forward model at our previous estimate of the state vector
+        % Therefore, we ask, 'what is the reflectance of a cloud with our
+        % current state vector guess?'
+        measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)';
         
-        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,bayes_inputs,pixel_row,pixel_col,data_inputs.inputs.INP_folderName,saveCalculations_fileName);
+        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,pixel_row,pixel_col,modisInputs.INP_folderName,saveCalculations_fileName);
         
         
         
@@ -104,7 +101,7 @@ for pp = 1:num_pixels
         end
         
         
-        % store the latest guess 
+        % store the latest guess
         retrieval(:,ii+1,pp) = new_guess;
         
     end

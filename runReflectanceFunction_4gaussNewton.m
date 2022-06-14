@@ -20,7 +20,7 @@ if strcmp(userName,'anbu8374')
     
 elseif strcmp(userName,'andrewbuggee')
     
-    libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval-Research/',...
+    libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4'];
     
 else

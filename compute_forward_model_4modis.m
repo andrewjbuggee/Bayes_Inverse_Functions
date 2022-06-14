@@ -8,32 +8,54 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4modis(modis,current_guess,bayes_inputs,pixel_row,pixel_col,INP_folderName,saveCalculations_fileName)
+function measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)
+
+% Define some needed folder and file names
+saveCalculations_fileName = GN_inputs.save_calcs_fileName; % where to save the computed data
+INP_folderName = modisInputs.INP_folderName; % Where to save the INP files
 
 % --- compute the forward model at our current estimate ---
 r_top = current_guess(1);
 r_bottom = current_guess(2);
 tau_c = current_guess(3);
 
-profile_type = bayes_inputs.model.profile.type; % type of water droplet profile
-wavelength_tau_c = bayes_inputs.model.profile.lambda_tau;                       % nm - Wavelength used for cloud optical depth calculation
+profile_type = GN_inputs.model.profile.type; % type of water droplet profile
+
+% Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
+% the cloud properties
+wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical depth calculation
 % ----------------------------------------------------------
 
 % --------------------------------------------
 % create water cloud file with droplet profile
 % --------------------------------------------
 
-wc_profile_fileName = write_waterCloud_files_with_profile(r_top,r_bottom,tau_c,profile_type, wavelength_tau_c);
+H = 0.5;                                % km - geometric thickness of cloud
+n_layers = 5;                          % number of layers to model within cloud
+
+z0 = 1;                                 % km - base height of cloud
+z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
+indVar = 'altitude';                    % string that tells the code which independent variable we used
+constraint = profile_type;       % string that tells the code which physical constraint to use
+
+re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
+
+dist = 'mono';                         % droplet distribution
+homogenous_str = 'non-homogeneous';     % This tells the function to create a multi-layered cloud
+z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector. 
+
+wc_filename = write_wc_file(re, tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str);
+
 
 % ----- Write an INP file --------
-names.inp = write_INP_4_MODIS_singlePixel_withProfile(wc_profile_fileName,INP_folderName,modis,pixel_row,pixel_col,current_guess);
+GN_names.inp = write_INP_file_4MODIS_Gauss_Newton(GN_inputs, modisInputs, pixel_row, pixel_col, modis, wc_filename);
     
 % now lets write the output names
     
-names.out = writeOutputNames(names.inp);
+GN_names.out = writeOutputNames(GN_names.inp);
 
 % ---- Run uvspec for the files created -----
-[measurement_estimate,~] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName);
+[measurement_estimate,~] = runReflectanceFunction_4gaussNewton(GN_names,INP_folderName,saveCalculations_fileName);
 
 
 

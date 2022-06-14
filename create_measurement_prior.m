@@ -9,7 +9,6 @@ function [bayes_inputs] = create_measurement_prior(bayes_inputs,data_struct,data
 
 bayes_inputs.data_type = inputname(2); % data set to be read. tells function what sort of measurement device we are using
 measurement_prior = bayes_inputs.measurement.prior;
-covariance_type = bayes_inputs.measurement.covariance_type;
 
 % ---------------------------------------
 % --- Stuff for the Measurement Prior ---

@@ -6,28 +6,24 @@
 
 %%
 
-function y = create_measurement_vector(modis,data_inputs)
-
-pixels2use = data_inputs.pixels2use;
-refl_data = cat(3,modis.EV.m250.reflectance,modis.EV.m500.reflectance);
-bands2run = 1:7;
-num_pixels = data_inputs.inputs.pixels.num_2calculate;
-
-% SWITCH TO 1KM DATA
-% but for now, lets propose a simple algebraic fix so taht we select
-% the proper pixel in our 500 meter data set
-pixelIndex_500m = 1:4:((num_pixels-1)*4 +1);
+function y = create_measurement_vector(modis,modisInputs, GN_inputs, pixels2use)
 
 
-y = zeros(length(bands2run),num_pixels);
+% We will retireve cloud properties for n pixels, designated by the
+% Gauss_Newton input structure
+num_pixels = GN_inputs.numPixels2Calculate;
 
+% Right now, use all 7 bands
+y = zeros(size(modis.EV1km.reflectance,3),num_pixels);
+
+% For now we use all 7 bands
 for pp = 1:num_pixels
     
     
-    row = pixels2use.res500m.row(pixelIndex_500m(pp));
-    col = pixels2use.res500m.col(pixelIndex_500m(pp));
+    row = pixels2use.res1km.row(pp);
+    col = pixels2use.res1km.col(pp);
     
-    y(:,pp) = reshape(refl_data(row,col,bands2run),length(bands2run),1);
+    y(:,pp) = reshape(modis.EV1km.reflectance(row,col,:),[],1);
     
 end
 
