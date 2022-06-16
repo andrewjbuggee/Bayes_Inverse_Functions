@@ -31,12 +31,12 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 % --------------------------------------------
 
 H = 0.5;                                % km - geometric thickness of cloud
-n_layers = 5;                          % number of layers to model within cloud
+n_layers = 5;                           % number of layers to model within cloud
 
 z0 = 1;                                 % km - base height of cloud
 z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
-constraint = profile_type;       % string that tells the code which physical constraint to use
+constraint = profile_type;              % string that tells the code which physical constraint to use
 
 re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
 

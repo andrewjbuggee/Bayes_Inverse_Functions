@@ -1,11 +1,12 @@
 
-function [output] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs, pixels2use)
+function [GN_output] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs, pixels2use)
 
 % ----- unpack inputs -----
 
 model_mean = GN_inputs.model.mean'; % a priori expected value for the model parameters
 model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
+initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Create the measurement vectors for each pixel!
 % Each column is associated with a specific pixel, and each row represents
@@ -29,6 +30,7 @@ num_bands = GN_inputs.numBands2use; % number of spectral bands to use
 retrieval = zeros(num_parameters,num_iterations+1,num_pixels); % we include the starting point, which is outside the number of iterations
 residual = zeros(num_bands,num_iterations,num_pixels); % we include the starting point, which is outside the number of iterations
 diff_guess_prior = zeros(num_parameters,num_iterations,num_pixels); % we include the starting point, which is outside the number of iterations
+jacobian_diff_guess_prior = zeros(num_bands,num_iterations,num_pixels);      % this is an expression that multiplies the Jacobian with the difference between the current iteration and the a priori
 posterior_cov = zeros(num_parameters,num_parameters,num_pixels); % my posterior covariance matrix
 
 for pp = 1:num_pixels
@@ -39,8 +41,10 @@ for pp = 1:num_pixels
     % value. This is our initial guess. By setting this to be the a priori
     % guess we can compute the inforamtion gain between the bi-spectral
     % approach and the hyperspectal approach
-    initial_guess = model_mean;
-    retrieval(:,1,pp) = initial_guess;
+    
+    % define the initial guess
+    % Here we define it to be the same re retireved for r_top and r_bottom
+    retrieval(:,1,pp) = initialGuess(:,pp);
     
     % -----------------------------------------------
     % ----- USING King and Vaughn (2012) Method -----
@@ -71,15 +75,16 @@ for pp = 1:num_pixels
         % current state vector guess?'
         measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)';
         
-        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,pixel_row,pixel_col,modisInputs.INP_folderName,saveCalculations_fileName);
+        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col);
         
         
         
         
         residual(:,ii,pp) = measurements(:,pp) - measurement_estimate;
-        diff_guess_prior(:,ii,pp) = model_mean - current_guess;
+        diff_guess_prior(:,ii,pp) = current_guess - model_mean(:,pp);
+        jacobian_diff_guess_prior(:,ii,pp) = jacobian*diff_guess_prior(:,ii,pp);
         
-        new_guess = model_mean + model_cov * jacobian' * (jacobian * model_cov * jacobian' + measurement_cov)^(-1) * (residual(:,ii,pp) + jacobian * diff_guess_prior(:,ii,pp));
+        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * jacobian' * (jacobian * model_cov(:,:,pp) * jacobian' + measurement_cov)^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
         
         % when using the Hu and Stamnes parameterization, re must be larger
         % than 2.5 and smaller than 60 microns. If the new guess is out of
@@ -109,14 +114,15 @@ for pp = 1:num_pixels
     % once convergence has occured, we can compute the posterior covariance
     % matrix
     
-    posterior_cov(:,:,pp) = (jacobian' * measurement_cov^(-1) * jacobian + model_cov^(-1))^(-1);
+    posterior_cov(:,:,pp) = (jacobian' * measurement_cov^(-1) * jacobian + model_cov(:,:,pp)^(-1))^(-1);
     
 end
 
-output.retrieval = retrieval;
-output.residual = residual;
-output.diff_guess_prior = diff_guess_prior;
-output.posterior_cov = posterior_cov;
+GN_output.retrieval = retrieval;
+GN_output.residual = residual;
+GN_output.diff_guess_prior = diff_guess_prior;
+GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
+GN_output.posterior_cov = posterior_cov;
 
 
 

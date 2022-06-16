@@ -25,6 +25,9 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
     bayes_inputs.model.variance = [linspace(3,3,n)',linspace(10,10,n)',0.1*truthTable.estT17(1:n)]; % variance for the effective radius (microns squared) and optical thickness respectively
     
     
+    % Define the initial guess based off of the variance
+    bayes_inputs.model.initialGuess = bayes_inputs.model.mean - sqrt(bayes_inputs.model.variance);
+    
     % For now lets claim the desired variables are independent
     for ii = 1:n
         bayes_inputs.model.covariance(:,:,ii) = diag(bayes_inputs.model.variance(ii,:));
