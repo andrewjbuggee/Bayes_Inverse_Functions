@@ -47,7 +47,6 @@ Rl = cell(size(inputFileNames)); % each value here is the spectral reflectance o
 % step through the band dimension
 parfor bb = 1:length(inputFileNames)
     
-    
     % --- For now, calculate inputSettings every time ---
     
     % start by running uvspec
@@ -61,7 +60,7 @@ parfor bb = 1:length(inputFileNames)
     
     
     [ds,~,~] = readUVSPEC(inp_folder,outputFileNames{bb},inputSettings(2,:)); % headers don't change per iteration
-    [R(bb),Rl{bb}] = reflectanceFunction(inputSettings(2,:),ds);
+    [R(bb),~] = reflectanceFunction(inputSettings(2,:),ds);
     
 end
 

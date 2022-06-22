@@ -16,17 +16,29 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
     n = bayes_inputs.numPixels2Calculate;
     
     % the order of the values below: (r_top, r_bottom, tau_c)
-    % The model mean is the a priori; our first guess
-    bayes_inputs.model.mean = [truthTable.estR17(1:n), truthTable.estR17(1:n), truthTable.estT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
+    % The model mean is the a priori, which is separate from our initial
+    % guess. Lets define the model mean as have a value at the cloud bottom
+    % equal to 50% the value at the top
+    bayes_inputs.model.mean = [truthTable.estR17(1:n), 0.5*truthTable.estR17(1:n), truthTable.estT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
     
     
     % lets create the variance and mean for each model parameter
     % Using the same values defined by King and Vaughn (2012)
-    bayes_inputs.model.variance = [linspace(3,3,n)',linspace(10,10,n)',0.1*truthTable.estT17(1:n)]; % variance for the effective radius (microns squared) and optical thickness respectively
+    % King and Vaughn define the standard deviation of each variable
+    % The first two values are the standard deviation of the effective
+    % radius at the top of the cloud and the bottom of the cloud, measured
+    % in microns. The third value is the percentage of the optical depth
+    % that defines the standard deviation.
+    stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];                                 
+    bayes_inputs.model.variance = [linspace(stdev_variables(1)^2,stdev_variables(1)^2,n)',...
+        linspace(stdev_variables(2)^2,stdev_variables(2)^2,n)',...
+        stdev_variables(3)^2 *truthTable.estT17(1:n)]; % variance for the effective radius (microns squared) and optical thickness respectively
     
     
-    % Define the initial guess based off of the variance
-    bayes_inputs.model.initialGuess = bayes_inputs.model.mean - sqrt(bayes_inputs.model.variance);
+    % Define the initial guess as being similar to the a priori except that
+    % we define the initial guess as having the same value for the
+    % effective radius at cloud top and bottom
+    bayes_inputs.model.initialGuess = [truthTable.estR17(1:n), truthTable.estR17(1:n), truthTable.estT17(1:n)];
     
     % For now lets claim the desired variables are independent
     for ii = 1:n

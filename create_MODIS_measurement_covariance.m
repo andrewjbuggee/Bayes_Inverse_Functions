@@ -41,12 +41,22 @@ elseif strcmp(covariance_type,'independent') == true
     
     for ii = 1:n
         % if each uncertainty represents the standard deviation, the
-        % variance is the square of each value
-        channel_variance = mean(modis.EV1km.reflectanceUncert(:,:,ii),'all')^2;
+        % variance is the square of each value. 
+        % the refelctance uncertanties are listed in percentages. So we
+        % multiply these percentages with the modis reflectance values to
+        % get the uncertainty in reflectance. 
+
+        % Lets start by converting the percentage to a decimal
+        uncertainty = 0.01*modis.EV1km.reflectanceUncert(:,:,ii);
+
+        % Lets assume the percentage given is the standard deviation
+        % According to King and Vaughn (2012): 'the values along the main
+        % diagonal correspond to the square of the uncertainty estimate for
+        % each wavelength channel'
+
+        GN_inputs.measurement.variance(ii) = mean((modis.EV1km.reflectance(:,:,ii).* uncertainty).^2,'all');
         
-        % record this as the channel variance
-        GN_inputs.measurement.variance(ii) = channel_variance;
-        
+                
     end
     
     % Create a diagonal matrix where each entry is the variance of that

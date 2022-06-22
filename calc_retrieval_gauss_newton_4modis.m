@@ -8,6 +8,9 @@ model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
+% Retrieve the convergence limit
+convergence_limit = GN_inputs.convergence_limit;
+
 % Create the measurement vectors for each pixel!
 % Each column is associated with a specific pixel, and each row represents
 % the reflectance measurement at a specific modis band
@@ -29,6 +32,7 @@ num_bands = GN_inputs.numBands2use; % number of spectral bands to use
 
 retrieval = zeros(num_parameters,num_iterations+1,num_pixels); % we include the starting point, which is outside the number of iterations
 residual = zeros(num_bands,num_iterations,num_pixels); % we include the starting point, which is outside the number of iterations
+rms_residual = zeros(num_iterations, num_pixels);      % RMS of the residual across all bands
 diff_guess_prior = zeros(num_parameters,num_iterations,num_pixels); % we include the starting point, which is outside the number of iterations
 jacobian_diff_guess_prior = zeros(num_bands,num_iterations,num_pixels);      % this is an expression that multiplies the Jacobian with the difference between the current iteration and the a priori
 posterior_cov = zeros(num_parameters,num_parameters,num_pixels); % my posterior covariance matrix
@@ -108,6 +112,17 @@ for pp = 1:num_pixels
         
         % store the latest guess
         retrieval(:,ii+1,pp) = new_guess;
+
+        % If the residual is below a certain threshold as defined in the
+        % GN_inputs strucute, break the for loop. We've converged
+        rms_residual(ii,pp) = sqrt(sum(residual(:,ii,pp).^2)/size(residual,1));
+
+        if rms_residual<convergence_limit
+            disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
+                'RMS = ', num2str(rms_residual)])
+            break
+        end
+
         
     end
     
@@ -120,6 +135,7 @@ end
 
 GN_output.retrieval = retrieval;
 GN_output.residual = residual;
+GN_output.rms_residual = rms_residual;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;

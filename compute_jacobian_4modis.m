@@ -21,7 +21,7 @@ tau_c = state_vector(3);
 
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.01 * r_top, 0.01 * r_bottom, 0.01 * tau_c];
+change_in_state = [0.3 * r_top, -0.3 * r_bottom, 0.3 * tau_c];
 
 
 % ----------------------------------------------------------
@@ -46,6 +46,7 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 
 % Lets step through each model variable and compute the derivative
 jacobian = zeros(length(measurement_estimate),num_model_parameters);
+change_in_measurement = zeros(length(measurement_estimate),num_model_parameters);
 
 for xx = 1:num_model_parameters
     
@@ -78,10 +79,23 @@ for xx = 1:num_model_parameters
     % ---- Run uvspec for the files created -----
     [new_measurement_estimate,~] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName);
     
-    jacobian(:,xx) = (new_measurement_estimate' - measurement_estimate)./change_in_state(xx);
+    change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
+
+    jacobian(:,xx) = change_in_measurement(:,xx)./change_in_state(xx);
+
+
     
 end
 
+
+% --- Optional Plot! ---
+f = figure; plot(abs((GN_inputs.measurement.variance)),'k*'); hold on
+plot(abs(change_in_measurement),'.','markersize',20); xlabel('Band Number', 'Interpreter','latex')
+ylabel('Reflectance','Interpreter','latex')
+legend('$\sigma_\lambda$','$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$',...
+     'interpreter', 'latex', 'Location','best'); grid on; grid minor
+set(f, 'Position',[0 0 800 400])
+title('Change in Reflectance', 'Interpreter','latex')
 
 
 
