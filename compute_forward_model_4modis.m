@@ -31,9 +31,9 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 % --------------------------------------------
 
 H = 0.5;                                % km - geometric thickness of cloud
-n_layers = 5;                           % number of layers to model within cloud
+n_layers = 10;                           % number of layers to model within cloud
 
-z0 = 1;                                 % km - base height of cloud
+z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 constraint = profile_type;              % string that tells the code which physical constraint to use
@@ -44,7 +44,9 @@ dist = 'mono';                         % droplet distribution
 homogenous_str = 'non-homogeneous';     % This tells the function to create a multi-layered cloud
 z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector. 
 
-wc_filename = write_wc_file(re, tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str);
+parameterization_str = modisInputs.flags.wc_parameterization;
+
+wc_filename = write_wc_file(re, tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str, parameterization_str);
 
 
 % ----- Write an INP file --------

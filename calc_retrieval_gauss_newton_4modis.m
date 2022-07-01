@@ -14,7 +14,7 @@ convergence_limit = GN_inputs.convergence_limit;
 % Create the measurement vectors for each pixel!
 % Each column is associated with a specific pixel, and each row represents
 % the reflectance measurement at a specific modis band
-measurements = create_measurement_vector(modis,modisInputs,GN_inputs, pixels2use); % each column represents one pixel
+measurements = create_measurement_vector(modis,GN_inputs, pixels2use); % each column represents one pixel
 
 num_iterations = GN_inputs.GN_iterations; % number of iterations to preform
 num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve for
@@ -79,7 +79,7 @@ for pp = 1:num_pixels
         % current state vector guess?'
         measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)';
         
-        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col);
+        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, GN_inputs.measurement.variance(:,pp));
         
         
         
@@ -88,8 +88,17 @@ for pp = 1:num_pixels
         diff_guess_prior(:,ii,pp) = current_guess - model_mean(:,pp);
         jacobian_diff_guess_prior(:,ii,pp) = jacobian*diff_guess_prior(:,ii,pp);
         
-        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * jacobian' * (jacobian * model_cov(:,:,pp) * jacobian' + measurement_cov)^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
+        % -----------------------------------------------------------------
+        % -----------------------------------------------------------------
+        % new_guess using the previous iteration
+        %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
         
+        % new_guess using the model prior mean value
+        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * jacobian' * (jacobian * model_cov(:,:,pp) * jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
+        % -----------------------------------------------------------------
+        % -----------------------------------------------------------------
+
+
         % when using the Hu and Stamnes parameterization, re must be larger
         % than 2.5 and smaller than 60 microns. If the new guess is out of
         % these bounds, fix it!
@@ -117,9 +126,9 @@ for pp = 1:num_pixels
         % GN_inputs strucute, break the for loop. We've converged
         rms_residual(ii,pp) = sqrt(sum(residual(:,ii,pp).^2)/size(residual,1));
 
-        if rms_residual<convergence_limit
+        if rms_residual(ii,pp)<convergence_limit
             disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
-                'RMS = ', num2str(rms_residual)])
+                'RMS = ', num2str(rms_residual(ii,pp))])
             break
         end
 
@@ -129,7 +138,7 @@ for pp = 1:num_pixels
     % once convergence has occured, we can compute the posterior covariance
     % matrix
     
-    posterior_cov(:,:,pp) = (jacobian' * measurement_cov^(-1) * jacobian + model_cov(:,:,pp)^(-1))^(-1);
+    posterior_cov(:,:,pp) = (jacobian' * measurement_cov(:,:,pp)^(-1) * jacobian + model_cov(:,:,pp)^(-1))^(-1);
     
 end
 

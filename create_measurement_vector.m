@@ -6,7 +6,7 @@
 
 %%
 
-function y = create_measurement_vector(modis,modisInputs, GN_inputs, pixels2use)
+function y = create_measurement_vector(modis, GN_inputs, pixels2use)
 
 
 % We will retireve cloud properties for n pixels, designated by the

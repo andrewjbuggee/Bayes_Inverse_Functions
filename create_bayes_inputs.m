@@ -1,11 +1,11 @@
 function bayes_inputs = create_bayes_inputs()
 
 % Define the number of pixels to estimate a profile for
-bayes_inputs.numPixels2Calculate = 10;
+bayes_inputs.numPixels2Calculate = 4;
 
 
 % define the number of iterations for the gauss-newton solver
-bayes_inputs.GN_iterations = 20;
+bayes_inputs.GN_iterations = 5;
 
 % Define the convergence limit. Convergence is defined using the residual,
 % which is the true measurement subtracted from the estiamted measurement.
@@ -16,7 +16,7 @@ bayes_inputs.GN_iterations = 20;
 % should be within this uncertainty. For MODIS, the measuremen uncertainty
 % for the reflectance is between 3 and 7%. So lets meet in the middle and
 % say 5 %
-bayes_inputs.convergence_limit = 0.05;
+bayes_inputs.convergence_limit = 0.005;
 
 % define the type of model prior pdf
 bayes_inputs.model.prior = 'gaussian';
@@ -67,9 +67,16 @@ bayes_inputs.measurement.covariance_type = 'independent';
 % bottom. This is the method of King and Vaughn (2012)
 
 % the options for the vertical droplet profile are:
-%   (1) 'subadiabatic_aloft'
-%   (2) 'subadiabatic_midlevel' - radius grows linearly with height r ~ z
-%   (3) 'adiabatic' - liquid water content grows linearly with height LWZ ~ z
+%       (a) 'adiabatic' - this assumption forces the liquid water content to
+%       be proportionl to z, the altitude.
+%       (b) 'subadiabatic_aloft' - this assumption assumes there is
+%       increasing entrainment and drying towards the cloud top.
+%       (c) 'linear_with_z' - this constraint forces the effective droplet profile
+%       to behave linearly with z (re(z)~z). Physically we are forcing subadiabtatic
+%       behavior at mid-levels.
+%       (d) 'linear_with_tau' - this constraint forces the effective
+%       droplet radius to have linearly with optical depth (re(z)~tau).
+%       Physically, this too forces subadiabatic behavior at mid-levels.
 % x is determined by the choice of droplet profile within the function
 % create_droplet_profile.m
 

@@ -5,7 +5,7 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col)
+function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, measurement_variance)
 
 % --- Define the filename to save all calculations ---
 saveCalculations_fileName = GN_inputs.save_calcs_fileName;
@@ -21,16 +21,16 @@ tau_c = state_vector(3);
 
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.3 * r_top, -0.3 * r_bottom, 0.3 * tau_c];
+change_in_state = [0.05 * r_top, -0.05 * r_bottom, 0.05 * tau_c];
 
 
 % ----------------------------------------------------------
 
 % Set up a few constants for the water cloud
-H = 0.5;                                % km - geometric thickness of cloud
-n_layers = 5;                          % number of layers to model within cloud
+H = 0.50;                                % km - geometric thickness of cloud
+n_layers = 10;                          % number of layers to model within cloud
     
-z0 = 1;                                 % km - base height of cloud
+z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
@@ -39,6 +39,8 @@ num_model_parameters = GN_inputs.num_model_parameters;
 dist = 'mono';                         % droplet distribution
 homogenous_str = 'non-homogeneous';     % This tells the function to create a multi-layered cloud
 z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector.
+
+parameterization_str = modisInputs.flags.wc_parameterization;
 
 % Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
 % the cloud properties
@@ -66,7 +68,7 @@ for xx = 1:num_model_parameters
     re = create_droplet_profile2([new_r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
     
     
-    wc_filename = write_wc_file(re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str);
+    wc_filename = write_wc_file(re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str, parameterization_str);
     
     
     % ----- Write an INP file --------
@@ -89,13 +91,56 @@ end
 
 
 % --- Optional Plot! ---
-f = figure; plot(abs((GN_inputs.measurement.variance)),'k*'); hold on
-plot(abs(change_in_measurement),'.','markersize',20); xlabel('Band Number', 'Interpreter','latex')
-ylabel('Reflectance','Interpreter','latex')
-legend('$\sigma_\lambda$','$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$',...
-     'interpreter', 'latex', 'Location','best'); grid on; grid minor
-set(f, 'Position',[0 0 800 400])
-title('Change in Reflectance', 'Interpreter','latex')
+
+spectral_bands = modisBands(1:7);
+[~, index_sort] = sort(spectral_bands);
+string_bands = string(round(spectral_bands(index_sort(:,1),1)));
+
+
+f = figure; bar([abs(change_in_measurement(index_sort(:,1),:)),sqrt(measurement_variance(index_sort(:,1)))])
+hold on
+xticklabels(string_bands);
+xlabel('Wavelength $(nm)$', 'Interpreter','latex')
+ylabel('$\triangle$ Reflectance','Interpreter','latex')
+legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
+     'interpreter', 'latex', 'Location','best','Fontsize',20); 
+grid on; grid minor
+set(f, 'Position',[0 0 1000 500])
+title('The Jacobian', 'Interpreter','latex')
+dim = [.14 0.67 .3 .3];
+str = ['$r_{top} = $',num2str(state_vector(1)),', $r_{bot} = $ ',num2str(state_vector(2)),', $\tau_c = $ ',num2str(state_vector(3))];
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Color','k',...
+    'FontWeight','bold','FontSize',14, 'EdgeColor','w','Interpreter','latex');
+
+
+
+%-------------------------------------------------------------
+% ---- SPECIAL PLOT FOR r_bot --------------------------------
+%-------------------------------------------------------------
+
+% spectral_bands = modisBands(1:7);
+% [~, index_sort] = sort(spectral_bands);
+% string_bands = string(round(spectral_bands(index_sort(:,1),1)));
+% 
+% load('jacobian_rt-10_rb-9_tau-20.mat', 'change_in_measurement')
+% change_r_bot = change_in_measurement(index_sort(:,1),2);
+% load('jacobian_rt-10_rb-9_tau-15.mat', 'change_in_measurement')
+% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
+% load('jacobian_rt-10_rb-9_tau-10.mat', 'change_in_measurement','measurement_variance')
+% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
+% 
+% f = figure; bar([abs(change_r_bot),sqrt(measurement_variance(index_sort(:,1)))])
+% hold on
+% xticklabels(string_bands);
+% xlabel('Wavelength $(nm)$', 'Interpreter','latex')
+% ylabel('$\triangle$ Reflectance','Interpreter','latex')
+% legend('$\tau_c = 20$','$\tau_c = 15$', '$\tau_c = 10$','$\sigma_\lambda$',...
+%      'interpreter', 'latex', 'Location','best','Fontsize',20); 
+% grid on; grid minor
+% set(f, 'Position',[0 0 1000 500])
+% title('$\partial F(\vec{x})/\partial r_{bot}$', 'Interpreter','latex')
+
+
 
 
 
