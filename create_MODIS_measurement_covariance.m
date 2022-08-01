@@ -58,14 +58,14 @@ elseif strcmp(covariance_type,'independent') == true
             c = pixels2use.res1km.col(pp);
 
             % Lets start by converting the percentage to a decimal
-            uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,ii);
+            GN_inputs.measurement.percent_uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,ii);
 
             % Lets assume the percentage given is the standard deviation
             % According to King and Vaughn (2012): 'the values along the main
             % diagonal correspond to the square of the uncertainty estimate for
             % each wavelength channel'
 
-            GN_inputs.measurement.variance(ii,pp) = (modis.EV1km.reflectance(r,c,ii).* uncertainty).^2;
+            GN_inputs.measurement.variance(ii,pp) = (modis.EV1km.reflectance(r,c,ii).* GN_inputs.measurement.percent_uncertainty).^2;
 
 
         end
