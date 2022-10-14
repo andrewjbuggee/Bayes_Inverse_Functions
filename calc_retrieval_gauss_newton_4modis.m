@@ -16,6 +16,19 @@ convergence_limit = GN_inputs.convergence_limit;
 % the reflectance measurement at a specific modis band
 measurements = create_measurement_vector(modis,GN_inputs, pixels2use); % each column represents one pixel
 
+% % The data from 11-11-2008 at 18:50 measured erroneous values in the 1.6
+% % micron channel. If using this data, lets ignore this measurement
+% if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
+% 
+%     % get rid of the 6th MODIS channel
+%     measurements(6,:) = [];
+% 
+% else
+% 
+% end
+
+
+
 num_iterations = GN_inputs.GN_iterations; % number of iterations to preform
 num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve for
 
@@ -25,7 +38,8 @@ num_pixels = GN_inputs.numPixels2Calculate;
 
 % ----- define number of spectral bands to use -----
 
-num_bands = GN_inputs.numBands2use; % number of spectral bands to use
+num_bands = length(GN_inputs.bands2use);
+
 
 
 % --- Create iterative Gauss-Newton Solver ----
@@ -79,14 +93,14 @@ for pp = 1:num_pixels
         % current state vector guess?'
         measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)';
         
-        jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, GN_inputs.measurement.variance(:,pp));
+        Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, GN_inputs.measurement.variance(:,pp));
         
         
         
         
         residual(:,ii,pp) = measurements(:,pp) - measurement_estimate;
         diff_guess_prior(:,ii,pp) = current_guess - model_mean(:,pp);
-        jacobian_diff_guess_prior(:,ii,pp) = jacobian*diff_guess_prior(:,ii,pp);
+        jacobian_diff_guess_prior(:,ii,pp) = Jacobian*diff_guess_prior(:,ii,pp);
         
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
@@ -94,7 +108,7 @@ for pp = 1:num_pixels
         %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
         
         % new_guess using the model prior mean value
-        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * jacobian' * (jacobian * model_cov(:,:,pp) * jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
+        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
@@ -129,6 +143,15 @@ for pp = 1:num_pixels
         if rms_residual(ii,pp)<convergence_limit
             disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
                 'RMS = ', num2str(rms_residual(ii,pp))])
+
+            % Clear the rest of the zeros that are place holders for later
+            % iterations
+            retrieval(:,ii+2:end,pp) = nan;
+            rms_residual(ii+1:end,pp) = nan;
+            residual(:,ii+1:end,pp) = nan;
+            diff_guess_prior(:,ii+1:end,pp) = nan;
+            jacobian_diff_guess_prior(:,ii+1:end,pp) = nan;
+
             break
         end
 
@@ -138,7 +161,7 @@ for pp = 1:num_pixels
     % once convergence has occured, we can compute the posterior covariance
     % matrix
     
-    posterior_cov(:,:,pp) = (jacobian' * measurement_cov(:,:,pp)^(-1) * jacobian + model_cov(:,:,pp)^(-1))^(-1);
+    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
     
 end
 

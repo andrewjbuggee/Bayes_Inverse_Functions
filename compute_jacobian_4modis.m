@@ -21,7 +21,30 @@ tau_c = state_vector(3);
 
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.05 * r_top, -0.05 * r_bottom, 0.05 * tau_c];
+if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
+
+    % For 11/11/2008 - 18:50 data
+    %change_in_state = [0.1 * r_top, 0.025 * r_bottom, 0.0375 * tau_c];
+    change_in_state = [0.1 * r_top, 0.1 * r_bottom, 0.05 * tau_c];
+
+elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1430/')==true
+
+    % For 11/11/2008 - 14:30 data
+    change_in_state = [0.1 * r_top, 0.05 * r_bottom, 0.1 * tau_c];
+
+elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_09/')==true
+
+    % For 11/09/2008 data
+    change_in_state = [0.1 * r_top, 0.1 * r_bottom, 0.1 * tau_c];
+
+else
+
+    change_in_state = [0.05 * r_top, 0.05 * r_bottom, 0.05 * tau_c];
+
+end
+
+
+
 
 
 % ----------------------------------------------------------
@@ -29,9 +52,13 @@ change_in_state = [0.05 * r_top, -0.05 * r_bottom, 0.05 * tau_c];
 % Set up a few constants for the water cloud
 H = 0.50;                                % km - geometric thickness of cloud
 n_layers = 10;                          % number of layers to model within cloud
-    
-z0 = 0.9;                                 % km - base height of cloud
-z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
+
+% Cloud top
+z_top = modis.cloud.topHeight(pixel_row, pixel_col)/1e3;        % meters -  cloud top height
+
+%z0 = 0.9;                                 % km - base height of cloud
+z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
+
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
 profile_type = GN_inputs.model.profile.type; % type of water droplet profile
@@ -92,7 +119,7 @@ end
 
 % --- Optional Plot! ---
 
-spectral_bands = modisBands(1:7);
+spectral_bands = modisBands(GN_inputs.bands2use);
 [~, index_sort] = sort(spectral_bands);
 string_bands = string(round(spectral_bands(index_sort(:,1),1)));
 

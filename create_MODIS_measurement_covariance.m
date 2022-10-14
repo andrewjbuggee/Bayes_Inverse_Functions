@@ -15,7 +15,7 @@ covariance_type = GN_inputs.measurement.covariance_type;
 GN_inputs.measurement.uncertainty = 0.02; % percentage of measurement uncertainty for reflectance according To "VALIDATION OF MODIS-DERIVED TOP-OF-ATMOSPHERE SPECTRAL RADIANCES BY MEANS OF VICARIOUS CALIBRATION"
 
 % Define the number of spectral channels
-n = GN_inputs.numBands2use;
+n_bands = length(GN_inputs.bands2use);
 
 
 % --------------------------------------------------------
@@ -39,14 +39,16 @@ elseif strcmp(covariance_type,'independent') == true
     % if the covariance matrix is diagonal, then we are assuming each
     % measurement (spectral channel) is independent of one another
 
-    GN_inputs.measurement.variance = zeros(n,length(pixels2use.res1km.linearIndex));
-    GN_inputs.measurement.covariance = zeros(n,n,length(pixels2use.res1km.linearIndex));
+    GN_inputs.measurement.variance = zeros(n_bands,length(pixels2use.res1km.linearIndex));
+    GN_inputs.measurement.covariance = zeros(n_bands,n_bands,length(pixels2use.res1km.linearIndex));
 
     % Step through each pixel being used
     for pp = 1:length(pixels2use.res1km.linearIndex)
 
         % Step through each band
-        for ii = 1:n
+        for bb = 1:n_bands
+
+            band_num = GN_inputs.bands2use(bb);
             % if each uncertainty represents the standard deviation, the
             % variance is the square of each value.
             % the refelctance uncertanties are listed in percentages. So we
@@ -58,14 +60,14 @@ elseif strcmp(covariance_type,'independent') == true
             c = pixels2use.res1km.col(pp);
 
             % Lets start by converting the percentage to a decimal
-            uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,ii);
+            uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,band_num);
 
             % Lets assume the percentage given is the standard deviation
             % According to King and Vaughn (2012): 'the values along the main
             % diagonal correspond to the square of the uncertainty estimate for
             % each wavelength channel'
 
-            GN_inputs.measurement.variance(ii,pp) = (modis.EV1km.reflectance(r,c,ii).* uncertainty).^2;
+            GN_inputs.measurement.variance(bb,pp) = (modis.EV1km.reflectance(r,c,band_num).* uncertainty).^2;
 
 
         end

@@ -33,8 +33,11 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 H = 0.5;                                % km - geometric thickness of cloud
 n_layers = 10;                           % number of layers to model within cloud
 
-z0 = 0.9;                                 % km - base height of cloud
-z = linspace(z0, z0+H,n_layers);        % km - altitude above ground vector
+% Cloud top
+z_top = modis.cloud.topHeight(pixel_row, pixel_col)/1e3;        % meters -  cloud top height
+
+%z0 = 0.9;                                 % km - base height of cloud
+z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 constraint = profile_type;              % string that tells the code which physical constraint to use
 

@@ -1,4 +1,4 @@
-function bayes_inputs = create_bayes_inputs()
+function bayes_inputs = create_bayes_inputs(modisInputs)
 
 % Define the number of pixels to estimate a profile for
 bayes_inputs.numPixels2Calculate = 4;
@@ -25,8 +25,21 @@ bayes_inputs.model.prior = 'gaussian';
 % define the number of model parameters to solve for
 bayes_inputs.num_model_parameters = 3;
 
-% Define the number of spectral channels to use in the gauss-newton solver
-bayes_inputs.numBands2use = 7;
+% Define the spectral channels to use in the gauss-newton solver
+% The data from 11-11-2008 at 18:50 measured erroneous values in the 1.6
+% micron channel. If using this data, lets ignore this measurement
+
+if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
+    
+    bayes_inputs.bands2use = [1:5,7];
+    
+else 
+
+    bayes_inputs.bands2use = 1:7;  % number of spectral bands to use
+
+end
+
+
 
 % -------------------------------------------
 % --- Stuff for the Model Parameter Prior ---
