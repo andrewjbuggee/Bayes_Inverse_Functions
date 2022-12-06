@@ -124,7 +124,9 @@ spectral_bands = modisBands(GN_inputs.bands2use);
 string_bands = string(round(spectral_bands(index_sort(:,1),1)));
 
 
-f = figure; bar([abs(change_in_measurement(index_sort(:,1),:)),sqrt(measurement_variance(index_sort(:,1)))])
+f = figure; bar(abs(change_in_measurement(index_sort(:,1),:)))
+hold on;
+plot(sqrt(measurement_variance(index_sort(:,1))), 'k--')
 hold on
 xticklabels(string_bands);
 xlabel('Wavelength $(nm)$', 'Interpreter','latex')

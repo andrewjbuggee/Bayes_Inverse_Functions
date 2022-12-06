@@ -7,7 +7,7 @@ function [bayes_inputs] = create_model_prior_and_covariance(bayes_inputs,truthTa
 % -------------------------------------------------------------
 
 
-% defien the model variance and mean using the Truth Table found by my
+% define the model variance and mean using the Truth Table found by my
 % TBLUT algorithm
 
 if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
@@ -57,7 +57,7 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
     else
 
 
-        bayes_inputs.model.mean = [truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
+        bayes_inputs.model.mean = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
         %bayes_inputs.model.mean = [truthTable.modisR17(1:n), truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
 
 
@@ -68,7 +68,7 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
         % radius at the top of the cloud and the bottom of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
-        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.3)];
+        stdev_variables = [sqrt(0.75), sqrt(2.5), sqrt(0.15)];
         bayes_inputs.model.variance = [linspace(stdev_variables(1)^2,stdev_variables(1)^2,n)',...
             linspace(stdev_variables(2)^2,stdev_variables(2)^2,n)',...
             stdev_variables(3)^2 *truthTable.modisT17(1:n)]; % variance for the effective radius (microns squared) and optical thickness respectively
@@ -78,8 +78,8 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
         % we define the initial guess as having the same value for the
         % effective radius at cloud top and bottom
         
-        bayes_inputs.model.initialGuess = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
-        %bayes_inputs.model.initialGuess = [truthTable.modisR17(1:n), truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
+        %bayes_inputs.model.initialGuess = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
+        bayes_inputs.model.initialGuess = [truthTable.modisR17(1:n), truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
 
         % For now lets claim the desired variables are independent
         for ii = 1:n

@@ -39,7 +39,22 @@ z_top = modis.cloud.topHeight(pixel_row, pixel_col)/1e3;        % meters -  clou
 %z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
+
+% constraint - the physical constraint (string) - there are four
+%       different string options for a physical constraint:
+%       (a) 'adiabatic' - this assumption forces the liquid water content to
+%       be proportionl to z, the altitude.
+%       (b) 'subadiabatic_aloft' - this assumption assumes there is
+%       increasing entrainment and drying towards the cloud top.
+%       (c) 'linear_with_z' - this constraint forces the effective droplet profile
+%       to behave linearly with z (re(z)~z). Physically we are forcing subadiabtatic
+%       behavior at mid-levels.
+%       (d) 'linear_with_tau' - this constraint forces the effective
+%       droplet radius to have linearly with optical depth (re(z)~tau).
+%       Physically, this too forces subadiabatic behavior at mid-levels.
 constraint = profile_type;              % string that tells the code which physical constraint to use
+
+
 
 re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
 
