@@ -63,7 +63,7 @@ if bayes_inputs.numPixels2Calculate<=size(truthTable,1)
 
         % lets create the variance and mean for each model parameter
         % Using the same values defined by King and Vaughn (2012)
-        % King and Vaughn define the standard deviation of each variable
+        % King and Vaughn define the standard deviation of each variable...
         % The first two values are the standard deviation of the effective
         % radius at the top of the cloud and the bottom of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
