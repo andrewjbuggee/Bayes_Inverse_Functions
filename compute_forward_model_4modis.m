@@ -30,13 +30,13 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 % create water cloud file with droplet profile
 % --------------------------------------------
 
-H = 0.5;                                % km - geometric thickness of cloud
-n_layers = 10;                           % number of layers to model within cloud
+% Set up a few constants for the water cloud
+H = GN_inputs.model.cloudDepth;                                % km - geometric thickness of cloud
+n_layers = GN_inputs.model.cloud_layers;                          % number of layers to model within cloud
 
 % Cloud top
-z_top = modis.cloud.topHeight(pixel_row, pixel_col)/1e3;        % meters -  cloud top height
+z_top = GN_inputs.model.cloudTop_height;        % km -  cloud top height
 
-%z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 

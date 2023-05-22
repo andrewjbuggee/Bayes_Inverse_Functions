@@ -1,11 +1,18 @@
 function bayes_inputs = create_bayes_inputs(modisInputs)
 
-% Define the number of pixels to estimate a profile for
-bayes_inputs.numPixels2Calculate = 4;
+% ----- Define the number of pixels to estimate a profile for -----
+%bayes_inputs.numPixels2Calculate = 4;
+% For now, let's only compute this calculation for the MODIS pixel in
+% question
+% We will only use what is in the truth table!
+bayes_inputs.numPixels2Calculate = modisInputs.pixels.num_2calculate;
+% -------------------------------------------------------------------
 
 
 % define the number of iterations for the gauss-newton solver
 bayes_inputs.GN_iterations = 5;
+
+
 
 % Define the convergence limit. Convergence is defined using the residual,
 % which is the true measurement subtracted from the estiamted measurement.
@@ -93,7 +100,7 @@ bayes_inputs.measurement.covariance_type = 'independent';
 % x is determined by the choice of droplet profile within the function
 % create_droplet_profile.m
 
-bayes_inputs.model.profile.type = 'adiabatic';
+bayes_inputs.model.profile.type = 'linear_with_z';
 bayes_inputs.model.profile.r_top = 10; % microns - value for our model
 bayes_inputs.model.profile.r_bottom = 5; % microns - value for our model
 

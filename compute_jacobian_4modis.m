@@ -50,11 +50,11 @@ end
 % ----------------------------------------------------------
 
 % Set up a few constants for the water cloud
-H = 0.50;                                % km - geometric thickness of cloud
-n_layers = 10;                          % number of layers to model within cloud
+H = GN_inputs.model.cloudDepth;                                % km - geometric thickness of cloud
+n_layers = GN_inputs.model.cloud_layers;                          % number of layers to model within cloud
 
 % Cloud top
-z_top = modis.cloud.topHeight(pixel_row, pixel_col)/1e3;        % meters -  cloud top height
+z_top = GN_inputs.model.cloudTop_height;        % km -  cloud top height
 
 %z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
@@ -64,7 +64,7 @@ indVar = 'altitude';                    % string that tells the code which indep
 profile_type = GN_inputs.model.profile.type; % type of water droplet profile
 num_model_parameters = GN_inputs.num_model_parameters;
 dist = 'mono';                         % droplet distribution
-homogenous_str = 'non-homogeneous';     % This tells the function to create a multi-layered cloud
+homogenous_str = 'non-homogeneous';     % This tells the function whether of not to create a multi-layered cloud
 z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector.
 
 parameterization_str = modisInputs.flags.wc_parameterization;

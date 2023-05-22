@@ -3,7 +3,7 @@ function [GN_output] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisI
 
 % ----- unpack inputs -----
 
-model_mean = GN_inputs.model.mean'; % a priori expected value for the model parameters
+model_apriori = GN_inputs.model.apriori'; % a priori expected values for the model parameters
 model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
@@ -99,7 +99,7 @@ for pp = 1:num_pixels
         
         
         residual(:,ii,pp) = measurements(:,pp) - measurement_estimate;
-        diff_guess_prior(:,ii,pp) = current_guess - model_mean(:,pp);
+        diff_guess_prior(:,ii,pp) = current_guess - model_apriori(:,pp);
         jacobian_diff_guess_prior(:,ii,pp) = Jacobian*diff_guess_prior(:,ii,pp);
         
         % -----------------------------------------------------------------
@@ -108,7 +108,7 @@ for pp = 1:num_pixels
         %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
         
         % new_guess using the model prior mean value
-        new_guess = model_mean(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
+        new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii,pp) + jacobian_diff_guess_prior(:,ii,pp));
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
