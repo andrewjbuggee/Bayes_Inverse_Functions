@@ -61,13 +61,17 @@ z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vecto
 
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-profile_type = GN_inputs.model.profile.type; % type of water droplet profile
+profile_type = GN_inputs.model.profile; % type of water droplet profile
 num_model_parameters = GN_inputs.num_model_parameters;
-dist = 'mono';                         % droplet distribution
-homogenous_str = 'non-homogeneous';     % This tells the function whether of not to create a multi-layered cloud
+dist_str = GN_inputs.RT.drop_distribution_str;                         % droplet distribution
+% -- For now, lets assume this is constant --
+dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.model.cloud_layers);              % distribution variance
+vert_homogeneous_str = GN_inputs.RT.vert_homogeneous_str;          % This tells the function whether of not to create a multi-layered cloud
 z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector.
 
-parameterization_str = modisInputs.flags.wc_parameterization;
+% Tell the code to use a pre-computed mie table for the extinction
+% efficiency, or to use the value of the extinction paradox -> Qe = 2
+parameterization_str = GN_inputs.RT.parameterization_str;
 
 % Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
 % the cloud properties
@@ -92,10 +96,13 @@ for xx = 1:num_model_parameters
     % create water cloud file with droplet profile
     % --------------------------------------------
     
-    re = create_droplet_profile2([new_r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
+    new_re = create_droplet_profile2([new_r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
     
     
-    wc_filename = write_wc_file(re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str, parameterization_str);
+    loop_var = 0;
+
+    wc_filename = write_wc_file(new_re, new_tau_c,z_topBottom, wavelength_tau_c(1,1), dist_str,...
+        dist_var, vert_homogeneous_str, parameterization_str, loop_var);
     
     
     % ----- Write an INP file --------
@@ -106,7 +113,7 @@ for xx = 1:num_model_parameters
     names.out = writeOutputNames(names.inp);
     
     % ---- Run uvspec for the files created -----
-    [new_measurement_estimate,~] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName);
+    [new_measurement_estimate,~] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
     
     change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
 

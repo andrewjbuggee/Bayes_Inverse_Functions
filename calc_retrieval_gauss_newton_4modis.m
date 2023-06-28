@@ -1,5 +1,5 @@
 
-function [GN_output] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs, pixels2use)
+function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs, pixels2use)
 
 % ----- unpack inputs -----
 
@@ -26,6 +26,29 @@ measurements = create_measurement_vector(modis,GN_inputs, pixels2use); % each co
 % else
 % 
 % end
+
+
+% -----------------------------------------------------------------------
+% --------------- Define the spectral response function -----------------
+% -----------------------------------------------------------------------
+
+% using the input 'bands2run', this defines the spectral bands that will be
+% written into INP files.
+
+% check to see if the MODIS instrument is aboard Terra or Aqua
+if strcmp(modisInputs.L1B_filename(1:3), 'MOD')==true
+    % Then read in the spectral response functions for the terra instrument
+    GN_inputs.spec_response = modis_terra_specResponse_func(GN_inputs.bands2use, GN_inputs.RT.sourceFile_resolution);
+
+elseif strcmp(modisInputs.L1B_filename(1:3), 'MYD')==true
+    % Then read in the spectral response functions for the Aqua instrument
+    GN_inputs.spec_response = modis_aqua_specResponse_func(GN_inputs.bands2use, GN_inputs.RT.sourceFile_resolution);
+end
+
+
+% ------------------------------------------------------------------------
+
+
 
 
 
@@ -72,7 +95,7 @@ for pp = 1:num_pixels
     % bi-spectral method
     
     
-    % ---- define pixel geometry -----
+    % ---- define which pixel to use -----
     pixel_row = pixels2use.res1km.row(pp);
     pixel_col = pixels2use.res1km.col(pp);
     
@@ -162,6 +185,15 @@ for pp = 1:num_pixels
     % matrix
     
     posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
+
+    
+    % Compute the retireved Liquid water path with the final profile
+    
+    z = linspace(GN_inputs.model.cloudTop_height - GN_inputs.model.cloudDepth, GN_inputs.model.cloudTop_height, GN_inputs.model.cloud_layers);        % km - altitude above ground vector
+
+    GN_outputs.LWP(pp) = trapz(z, create_droplet_profile2([GN_outputs.retrieval(1,end), GN_outputs.retrieval(2,end)],...
+            GN_outputs.tau_vector, 'altitude', GN_inputs.model.profile.type));
+
     
 end
 

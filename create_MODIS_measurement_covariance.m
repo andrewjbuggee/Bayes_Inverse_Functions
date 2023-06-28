@@ -12,7 +12,8 @@ covariance_type = GN_inputs.measurement.covariance_type;
 
 
 % ---**--- Important Quantity ---**---
-GN_inputs.measurement.uncertainty = 0.02; % percentage of measurement uncertainty for reflectance according To "VALIDATION OF MODIS-DERIVED TOP-OF-ATMOSPHERE SPECTRAL RADIANCES BY MEANS OF VICARIOUS CALIBRATION"
+% According To "VALIDATION OF MODIS-DERIVED TOP-OF-ATMOSPHERE SPECTRAL RADIANCES BY MEANS OF VICARIOUS CALIBRATION"
+%GN_inputs.measurement.uncertainty = 0.02; % percentage of measurement uncertainty for reflectance
 
 % Define the number of spectral channels
 n_bands = length(GN_inputs.bands2use);
@@ -24,6 +25,7 @@ n_bands = length(GN_inputs.bands2use);
 % ---------------------------------------------------------
 
 if strcmp(covariance_type,'computed') == true
+
     data = cat(3,modis.EV.m250.reflectance,modis.EV.m500.reflectance);
     data = data(:,:,GN_inputs.spectral_bins);
     for bb = 1:length(GN_inputs.spectral_bins)
@@ -35,6 +37,7 @@ if strcmp(covariance_type,'computed') == true
     GN_inputs.measurement.covariance = cov(data2run);
 
 elseif strcmp(covariance_type,'independent') == true
+
     % create the covaraince matrix of the model parameters
     % if the covariance matrix is diagonal, then we are assuming each
     % measurement (spectral channel) is independent of one another
@@ -44,6 +47,10 @@ elseif strcmp(covariance_type,'independent') == true
 
     % Step through each pixel being used
     for pp = 1:length(pixels2use.res1km.linearIndex)
+
+        % Grab the row and column
+        r = pixels2use.res1km.row(pp);
+        c = pixels2use.res1km.col(pp);
 
         % Step through each band
         for bb = 1:n_bands
@@ -55,21 +62,17 @@ elseif strcmp(covariance_type,'independent') == true
             % multiply these percentages with the modis reflectance values to
             % get the uncertainty in reflectance.
 
-            % Grab the row and column
-            r = pixels2use.res1km.row(pp);
-            c = pixels2use.res1km.col(pp);
 
             % Lets start by converting the percentage to a decimal
-            uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,band_num);
-            GN_inputs.measurement.percent_uncertainty = 0.01*modis.EV1km.reflectanceUncert(r,c,band_num);
+            GN_inputs.measurement.uncertainty(bb,pp) = 0.01* double(modis.EV1km.reflectanceUncert(r,c,band_num));        % uncertainty as a decimal
+
 
             % Lets assume the percentage given is the standard deviation
             % According to King and Vaughn (2012): 'the values along the main
             % diagonal correspond to the square of the uncertainty estimate for
             % each wavelength channel'
 
-            GN_inputs.measurement.variance(bb,pp) = (modis.EV1km.reflectance(r,c,band_num).* uncertainty).^2;
-            GN_inputs.measurement.variance(bb,pp) = (modis.EV1km.reflectance(r,c,band_num).* GN_inputs.measurement.percent_uncertainty).^2;
+            GN_inputs.measurement.variance(bb,pp) = (modis.EV1km.reflectance(r,c,band_num).* GN_inputs.measurement.uncertainty(bb,pp)).^2;
 
 
         end

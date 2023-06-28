@@ -19,7 +19,7 @@ r_top = current_guess(1);
 r_bottom = current_guess(2);
 tau_c = current_guess(3);
 
-profile_type = GN_inputs.model.profile.type; % type of water droplet profile
+profile_type = GN_inputs.model.profile; % type of water droplet profile
 
 % Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
 % the cloud properties
@@ -58,13 +58,42 @@ constraint = profile_type;              % string that tells the code which physi
 
 re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
 
-dist = 'mono';                         % droplet distribution
-homogenous_str = 'non-homogeneous';     % This tells the function to create a multi-layered cloud
-z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector. 
 
-parameterization_str = modisInputs.flags.wc_parameterization;
+% Set the droplet distribution type
+dist_str = GN_inputs.RT.drop_distribution_str;                                 % droplet distribution
 
-wc_filename = write_wc_file(re, tau_c, z_topBottom, wavelength_tau_c(1,1), dist, homogenous_str, parameterization_str);
+% define the droplet distribution variance
+% This should be the same length as re
+% A distribution variance must be defined for each re value
+
+% -- For now, lets assume this is constant --
+dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.model.cloud_layers);              % distribution variance
+
+vert_homogeneous_str = GN_inputs.RT.vert_homogeneous_str;     % This tells the function to create a multi-layered cloud
+% define the boundaries of the cloud in Z-space
+z_topBottom = [z(end), z(1)];                    % km - boundaries of the altitude vector. 
+
+% Tell the code to use a pre-computed mie table for the extinction
+% efficiency, or to use the value of the extinction paradox -> Qe = 2
+parameterization_str = GN_inputs.RT.parameterization_str;
+
+
+% -----------------------------------
+% ---- Write a Water Cloud file! ----
+% -----------------------------------
+
+% ------------------------------------------------------
+% --------------------VERY IMPORTANT ------------------
+% ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
+% ------------------------------------------------------
+loop_var = 0;
+
+wc_filename = write_wc_file(re,tau_c,z_topBottom, wavelength_tau_c(1,1), dist_str,...
+    dist_var, vert_homogeneous_str, parameterization_str, loop_var);
+
+
+% ------------------------------------------------------
+% ------------------------------------------------------
 
 
 % ----- Write an INP file --------
@@ -75,7 +104,7 @@ GN_names.inp = write_INP_file_4MODIS_Gauss_Newton(GN_inputs, modisInputs, pixel_
 GN_names.out = writeOutputNames(GN_names.inp);
 
 % ---- Run uvspec for the files created -----
-[measurement_estimate,~] = runReflectanceFunction_4gaussNewton(GN_names,INP_folderName,saveCalculations_fileName);
+[measurement_estimate,~] = runReflectanceFunction_4gaussNewton(GN_names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
 
 
 

@@ -120,4 +120,141 @@ bayes_inputs.save_calcs_fileName = ['uvspec_CALCS_4Bayes_',date,'.mat'];
 
 
 
+
+
+
+
+
+
+
+% ------------------------------------------------------
+% ----- Define Radiative Transfer Model Parameters -----
+% ------------------------------------------------------
+
+
+% Define the number of streams to use in your radiative transfer model
+bayes_inputs.RT.num_streams = 16;
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to use the Nakajima and Tanka radiance correction? -----
+bayes_inputs.RT.use_nakajima_phaseCorrection = true;
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ----------------- What band model do you want to use? ------------------
+
+% reptran coarse is the default
+% if using reptran, provide one of the following: coarse (default), medium
+% or fine
+bayes_inputs.RT.band_parameterization = 'reptran coarse';
+%band_parameterization = 'reptran_channel modis_terra_b07';
+% ------------------------------------------------------------------------
+
+
+% ---------------------------------------------------------
+% ------ Define the Solar Flux file and it's resolution ---
+% ---------------------------------------------------------
+% resolution should match the value listed in the file name
+bayes_inputs.RT.sourceFile_resolution = 1;                  % nm
+% Define the source file
+bayes_inputs.RT.source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+
+% define the atmospheric data file
+bayes_inputs.RT.atm_file = 'afglus.dat';
+
+% define the surface albedo
+bayes_inputs.RT.surface_albedo = 0.05;
+
+% day of the year
+bayes_inputs.RT.day_of_year = str2double(modisInputs.L1B_filename(15:17));
+
+
+
+
+% ------------------------------------------------------------------------
+% -------------- Do you want a cloud in your model? ----------------------
+bayes_inputs.RT.yesCloud = true;
+
+% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
+bayes_inputs.RT.linear_cloudFraction = false;
+% if false, define the cloud cover percentage
+bayes_inputs.RT.cloud_cover = 1;
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ------ Do you want to use the MODIS cloud top height estimate? ---------
+bayes_inputs.RT.use_MODIS_cloudTopHeight = false;
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ------ Do you want to use the MODIS above cloud water vapor? ---------
+bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
+% ------------------------------------------------------------------------
+
+% ------------------------------------------------------------------------
+% -------- Do you want to use the VOCALS measured cloud depth? -----------
+bayes_inputs.RT.use_VOCALS_cloudDepth = true;
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% ---------- Do you want use your custom mie calculation file? -----------
+bayes_inputs.RT.use_custom_mie_calcs = false;
+% ------------------------------------------------------------------------
+% This string is used to compute the LWC from optical depth and effective radius
+% can be 'hu' or 'mie interpolate'
+bayes_inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and stamnes parameterization for converting cloud properties to optical properties
+% define the type of droplet distribution
+bayes_inputs.RT.drop_distribution_str = 'gamma';
+% define the distribution varaince
+% 7 is the value libRadTran uses for liquid water clouds
+bayes_inputs.RT.drop_distribution_var = 10;
+% define whether this is a vertically homogenous cloud or not
+bayes_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+% define how liquid water content will be computed
+% can either be 'mie' or '2limit'
+bayes_inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
+
+
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% --- Do you want to use the Cox-Munk Ocean Surface Model? -----
+bayes_inputs.RT.use_coxMunk = true;
+bayes_inputs.RT.wind_speed = 3;             % m/s
+% --------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want boundary layer aerosols in your model? -----------
+bayes_inputs.RT.yesAerosols = true;
+
+bayes_inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
+bayes_inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
+% ------------------------------------------------------------------------
+
+
+% ----- Do you want a long error message? -----
+% if so, set error message to 'verbose'. Otherwise, set error message to
+% 'quiet'
+bayes_inputs.RT.err_msg = 'quiet';
+
+
+
+
+
+
+
+
+
+
 end
