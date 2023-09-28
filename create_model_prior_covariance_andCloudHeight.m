@@ -177,15 +177,24 @@ else
 
 
 
+
+        %----------------------------------------------------------
+        % ----------- Define the Cloud Top Height ----------------
+        %----------------------------------------------------------
+
         if GN_inputs.RT.use_MODIS_cloudTopHeight==true
             % Define cloud top height using MODIS data
-            GN_inputs.model.cloudTop_height(nn) = modis.cloud.topHeight(indexes2run(nn))/1e3;        % km
+            GN_inputs.RT.cloudTop_height(nn) = modis.cloud.topHeight(indexes2run(nn))/1e3;        % km
+
+        elseif GN_inputs.RT.use_VOCALS_cloudTopHeight==true
+
+            % Define cloud top height using Vocals Rex
+            GN_inputs.RT.cloudTop_height = vocalsRex.altitude(end)/1e3;        % km
 
         else
 
-            % Define cloud top height using Vocals Rex
-            GN_inputs.model.cloudTop_height = vocalsRex.altitude(end)/1e3;        % km
-
+            % Define a fixed cloud top height
+            GN_inputs.RT.cloudTop_height = 6;           % km
         end
 
 
@@ -207,18 +216,18 @@ else
 
 
     %----------------------------------------------------------
-    % ----------- Define the Cloud Top Height ----------------
+    % ----------- Define the Cloud Top Depth ------------------
     %----------------------------------------------------------
 
     if GN_inputs.RT.use_VOCALS_cloudDepth==true
 
         % Define cloud depth using Vocals Rex
-        GN_inputs.model.cloudDepth = (vocalsRex.altitude(end) - vocalsRex.altitude(1))/1e3;      % km
+        GN_inputs.RT.cloudDepth = (vocalsRex.altitude(end) - vocalsRex.altitude(1))/1e3;      % km
 
     else
 
         % Define a custom cloud depth
-        GN_inputs.model.cloudDepth = 1;            % km
+        GN_inputs.RT.cloudDepth = 1;            % km
 
     end
 
@@ -229,7 +238,7 @@ else
 
     % Define number of layers to use in libRadTran when defining
     % vertically inhomogenous clouds
-    GN_inputs.model.cloud_layers = 10;
+    GN_inputs.RT.cloud_layers = 10;
 
 
 
