@@ -23,7 +23,12 @@ bayes_inputs.GN_iterations = 5;
 % should be within this uncertainty. For MODIS, the measuremen uncertainty
 % for the reflectance is between 3 and 7%. So lets meet in the middle and
 % say 5 %
-bayes_inputs.convergence_limit = 0.005;
+bayes_inputs.convergence_limit = 0;
+
+% define a percent threshold of the difference between successive
+% iterations. If the percent difference is below the percent threshold,
+% than the iterative process is stopped.
+bayes_inputs.percent_change_limit = 0.03;
 
 % define the type of model prior pdf
 bayes_inputs.model.prior = 'gaussian';
@@ -100,7 +105,7 @@ bayes_inputs.measurement.covariance_type = 'independent';
 % x is determined by the choice of droplet profile within the function
 % create_droplet_profile.m
 
-bayes_inputs.model.profile.type = 'linear_with_z';
+bayes_inputs.model.profile.type = 'adiabatic';
 bayes_inputs.model.profile.r_top = 10; % microns - value for our model
 bayes_inputs.model.profile.r_bottom = 5; % microns - value for our model
 
@@ -188,6 +193,9 @@ bayes_inputs.RT.cloud_cover = 1;
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS cloud top height estimate? ---------
 bayes_inputs.RT.use_MODIS_cloudTopHeight = false;
+
+% --- Do you want to use the VOCALS-REx cloud top height measurement? ----
+bayes_inputs.RT.use_VOCALS_cloudTopHeight = true;
 % ------------------------------------------------------------------------
 
 
@@ -214,7 +222,7 @@ bayes_inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and
 bayes_inputs.RT.drop_distribution_str = 'gamma';
 % define the distribution varaince
 % 7 is the value libRadTran uses for liquid water clouds
-bayes_inputs.RT.drop_distribution_var = 10;
+bayes_inputs.RT.drop_distribution_var = 7;
 % define whether this is a vertically homogenous cloud or not
 bayes_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 % define how liquid water content will be computed

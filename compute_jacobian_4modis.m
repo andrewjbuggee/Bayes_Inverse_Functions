@@ -5,7 +5,11 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, measurement_variance)
+function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, pp)
+
+
+% Define the measurement variance for the current pixel
+measurement_variance = GN_inputs.measurement.variance(:,pp);
 
 % --- Define the filename to save all calculations ---
 saveCalculations_fileName = GN_inputs.save_calcs_fileName;
@@ -25,21 +29,21 @@ if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
 
     % For 11/11/2008 - 18:50 data
     %change_in_state = [0.1 * r_top, 0.025 * r_bottom, 0.0375 * tau_c];
-    change_in_state = [0.1 * r_top, 0.1 * r_bottom, 0.05 * tau_c];
+    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
 
 elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1430/')==true
 
     % For 11/11/2008 - 14:30 data
-    change_in_state = [0.1 * r_top, 0.05 * r_bottom, 0.1 * tau_c];
+    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
 
 elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_09/')==true
 
     % For 11/09/2008 data
-    change_in_state = [0.1 * r_top, 0.1 * r_bottom, 0.1 * tau_c];
+    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
 
 else
 
-    change_in_state = [0.05 * r_top, 0.05 * r_bottom, 0.05 * tau_c];
+    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
 
 end
 
@@ -50,22 +54,22 @@ end
 % ----------------------------------------------------------
 
 % Set up a few constants for the water cloud
-H = GN_inputs.model.cloudDepth;                                % km - geometric thickness of cloud
-n_layers = GN_inputs.model.cloud_layers;                          % number of layers to model within cloud
+H = GN_inputs.RT.cloudDepth;                                % km - geometric thickness of cloud
+n_layers = GN_inputs.RT.cloud_layers;                          % number of layers to model within cloud
 
 % Cloud top
-z_top = GN_inputs.model.cloudTop_height;        % km -  cloud top height
+z_top = GN_inputs.RT.cloudTop_height(pp);        % km -  cloud top height
 
 %z0 = 0.9;                                 % km - base height of cloud
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-profile_type = GN_inputs.model.profile; % type of water droplet profile
+profile_type = GN_inputs.model.profile.type; % type of water droplet profile
 num_model_parameters = GN_inputs.num_model_parameters;
 dist_str = GN_inputs.RT.drop_distribution_str;                         % droplet distribution
 % -- For now, lets assume this is constant --
-dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.model.cloud_layers);              % distribution variance
+dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.RT.cloud_layers);              % distribution variance
 vert_homogeneous_str = GN_inputs.RT.vert_homogeneous_str;          % This tells the function whether of not to create a multi-layered cloud
 z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector.
 
@@ -80,6 +84,13 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 % Lets step through each model variable and compute the derivative
 jacobian = zeros(length(measurement_estimate),num_model_parameters);
 change_in_measurement = zeros(length(measurement_estimate),num_model_parameters);
+
+% ----- Let's define the 3 new state vectors -----
+% each new state vector perturbs one variable only
+%perturbed_state_vector = repmat(state_vector, length(state_vector), 1) + change_in_state;
+
+% make an empty strucutre for the file names
+%names = struct([]);
 
 for xx = 1:num_model_parameters
     
@@ -101,7 +112,7 @@ for xx = 1:num_model_parameters
     
     loop_var = 0;
 
-    wc_filename = write_wc_file(new_re, new_tau_c,z_topBottom, wavelength_tau_c(1,1), dist_str,...
+    wc_filename = write_wc_file(new_re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist_str,...
         dist_var, vert_homogeneous_str, parameterization_str, loop_var);
     
     
@@ -122,6 +133,15 @@ for xx = 1:num_model_parameters
 
     
 end
+
+
+% ----- Check to see if there are any NaN values in the Jacobian Matrix -----
+
+if any(isnan(jacobian))==true
+
+    error([newline, 'There are NaN values in the Jacobian matrix.', newline])
+end
+
 
 
 % --- Optional Plot! ---

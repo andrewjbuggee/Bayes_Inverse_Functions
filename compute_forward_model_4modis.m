@@ -8,7 +8,7 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs)
+function measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs, pp)
 
 % Define some needed folder and file names
 saveCalculations_fileName = GN_inputs.save_calcs_fileName; % where to save the computed data
@@ -19,7 +19,7 @@ r_top = current_guess(1);
 r_bottom = current_guess(2);
 tau_c = current_guess(3);
 
-profile_type = GN_inputs.model.profile; % type of water droplet profile
+profile_type = GN_inputs.model.profile.type; % type of water droplet profile
 
 % Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
 % the cloud properties
@@ -31,13 +31,14 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 % --------------------------------------------
 
 % Set up a few constants for the water cloud
-H = GN_inputs.model.cloudDepth;                                % km - geometric thickness of cloud
-n_layers = GN_inputs.model.cloud_layers;                          % number of layers to model within cloud
+H = GN_inputs.RT.cloudDepth;                                % km - geometric thickness of cloud
+n_layers = GN_inputs.RT.cloud_layers;                          % number of layers to model within cloud
 
 % Cloud top
-z_top = GN_inputs.model.cloudTop_height;        % km -  cloud top height
+z_top = GN_inputs.RT.cloudTop_height(pp);        % km -  cloud top height
 
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
+
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
 % constraint - the physical constraint (string) - there are four
@@ -67,7 +68,7 @@ dist_str = GN_inputs.RT.drop_distribution_str;                                 %
 % A distribution variance must be defined for each re value
 
 % -- For now, lets assume this is constant --
-dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.model.cloud_layers);              % distribution variance
+dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.RT.cloud_layers);              % distribution variance
 
 vert_homogeneous_str = GN_inputs.RT.vert_homogeneous_str;     % This tells the function to create a multi-layered cloud
 % define the boundaries of the cloud in Z-space

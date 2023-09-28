@@ -1,4 +1,4 @@
-function [GN_inputs] = create_model_prior_and_covariance(GN_inputs, pixels2use, truthTable, use_MODIS_estimates, modis, vocalsRex)
+function [GN_inputs] = create_model_prior_covariance_andCloudHeight(GN_inputs, pixels2use, truthTable, use_MODIS_estimates, modis, vocalsRex)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -47,14 +47,14 @@ if use_MODIS_estimates==false
         % radius at the top of the cloud and the bottom of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
-        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.3)];
+        stdev_variables = [3, 5, 0.1 * truthTable.estT17(1:n)];
 
 
 
 
         GN_inputs.model.variance = [linspace(stdev_variables(1)^2,stdev_variables(1)^2,n)',...
             linspace(stdev_variables(2)^2,stdev_variables(2)^2,n)',...
-            stdev_variables(3)^2 *truthTable.estT17(1:n)]; % variance for the effective radius (microns squared) and optical thickness respectively
+            stdev_variables(3)^2 ]; % variance for the effective radius (microns squared) and optical thickness respectively
 
 
 
@@ -102,11 +102,11 @@ if use_MODIS_estimates==false
 
         % lets create the variance and mean for each model parameter
         % Using the same values defined by King and Vaughn (2012)
-        r_top_var = 3;
-        r_bot_var = 10;
-        percent_tau = 0.05;
+        r_top_var = 3^2;
+        r_bot_var = 10^2;
+        tau_var = (0.1 * truthTable.estT17)^2;
 
-        GN_inputs.model.variance = [linspace(r_top_var,r_top_var,n)',linspace(r_bot_var,r_bot_var,n)',percent_tau*truthTable.estT17]; % variance for the effective radius (microns squared) and optical thickness respectively
+        GN_inputs.model.variance = [linspace(r_top_var,r_top_var,n)',linspace(r_bot_var,r_bot_var,n)', tau_var]; % variance for the effective radius (microns squared) and optical thickness respectively
 
 
         % For now lets claim the desired variables are independent
@@ -146,8 +146,9 @@ else
         % radius at the top of the cloud and the bottom of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
+
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
-        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.05 * modis.cloud.optThickness17(indexes2run(nn)))];
+        stdev_variables = [3, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
 
         % variance for the effective radius (microns squared) and optical thickness respectively
         GN_inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];
@@ -189,12 +190,13 @@ else
         elseif GN_inputs.RT.use_VOCALS_cloudTopHeight==true
 
             % Define cloud top height using Vocals Rex
-            GN_inputs.RT.cloudTop_height = vocalsRex.altitude(end)/1e3;        % km
+            GN_inputs.RT.cloudTop_height(nn) = vocalsRex.altitude(end)/1e3;        % km
 
         else
 
             % Define a fixed cloud top height
-            GN_inputs.RT.cloudTop_height = 6;           % km
+            GN_inputs.RT.cloudTop_height(nn) = 6;           % km
+            
         end
 
 
