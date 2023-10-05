@@ -30,6 +30,13 @@ measurements = create_measurement_vector(modis,GN_inputs, pixels2use); % each co
 %
 % end
 
+% -----------------------------------------------------------------------
+% --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
+% -----------------------------------------------------------------------
+
+jacobian_barPlot_flag = false;
+
+
 
 % -----------------------------------------------------------------------
 % --------------- Define the spectral response function -----------------
@@ -141,7 +148,7 @@ for pp = 1:num_pixels
         % current state vector guess?'
         measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
 
-        Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, pp);
+        Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag);
 
 
 
@@ -262,7 +269,7 @@ for pp = 1:num_pixels
     % First compute the latest measurement estimate
     measurement_estimate = compute_forward_model_4modis(modis, retrieval{pp}(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
     % we need to compute the jacobian using the solution state
-    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp);
+    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag);
 
     posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 

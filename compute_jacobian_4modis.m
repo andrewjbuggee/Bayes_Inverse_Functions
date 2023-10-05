@@ -5,7 +5,7 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, pp)
+function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag)
 
 
 % Define the measurement variance for the current pixel
@@ -146,27 +146,32 @@ end
 
 % --- Optional Plot! ---
 
-spectral_bands = modisBands(GN_inputs.bands2use);
-[~, index_sort] = sort(spectral_bands);
-string_bands = string(round(spectral_bands(index_sort(:,1),1)));
+if jacobian_barPlot_flag==true
+
+    spectral_bands = modisBands(GN_inputs.bands2use);
+    [~, index_sort] = sort(spectral_bands);
+    string_bands = string(round(spectral_bands(index_sort(:,1),1)));
 
 
-f = figure; bar(abs(change_in_measurement(index_sort(:,1),:)))
-hold on;
-plot(sqrt(measurement_variance(index_sort(:,1))), 'k--')
-hold on
-xticklabels(string_bands);
-xlabel('Wavelength $(nm)$', 'Interpreter','latex')
-ylabel('$\triangle$ Reflectance','Interpreter','latex')
-legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
-     'interpreter', 'latex', 'Location','best','Fontsize',20); 
-grid on; grid minor
-set(f, 'Position',[0 0 1000 500])
-title('The Jacobian', 'Interpreter','latex')
-dim = [.14 0.67 .3 .3];
-str = ['$r_{top} = $',num2str(state_vector(1)),', $r_{bot} = $ ',num2str(state_vector(2)),', $\tau_c = $ ',num2str(state_vector(3))];
-annotation('textbox',dim,'String',str,'FitBoxToText','on','Color','k',...
-    'FontWeight','bold','FontSize',14, 'EdgeColor','w','Interpreter','latex');
+    f = figure; bar(abs(change_in_measurement(index_sort(:,1),:)))
+    hold on;
+    plot(sqrt(measurement_variance(index_sort(:,1))), 'k--')
+    hold on
+    xticklabels(string_bands);
+    xlabel('Wavelength $(nm)$', 'Interpreter','latex')
+    ylabel('$\triangle$ Reflectance','Interpreter','latex')
+    legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
+        'interpreter', 'latex', 'Location','best','Fontsize',20);
+    grid on; grid minor
+    set(f, 'Position',[0 0 1000 500])
+    title('The Jacobian', 'Interpreter','latex')
+    dim = [.14 0.67 .3 .3];
+    str = ['$r_{top} = $',num2str(state_vector(1)),', $r_{bot} = $ ',num2str(state_vector(2)),', $\tau_c = $ ',num2str(state_vector(3))];
+    annotation('textbox',dim,'String',str,'FitBoxToText','on','Color','k',...
+        'FontWeight','bold','FontSize',14, 'EdgeColor','w','Interpreter','latex');
+
+
+end
 
 
 
