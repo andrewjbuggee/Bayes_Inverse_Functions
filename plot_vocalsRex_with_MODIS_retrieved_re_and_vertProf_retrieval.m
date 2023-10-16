@@ -1,11 +1,16 @@
 %% Plot the VOCALS-Rex in-situ data along with a MODIS retrieved droplet size and optical depth for a single pixel
 
+% INPUTS:
+
+% (4) pixel_2Plot: a string that can either be 'first', 'median', or
+% 'last'. This tells the function which pixel to use when plotting the
+% MODIS results
 
 % By Andrew John Buggee
 
 %%
 
-function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs)
+function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, pixel_2Plot)
 
 
 % ------------------------------------------------------------------
@@ -75,15 +80,58 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 
 
 % Plot the modis droplet estimate as a constant vertical line
-xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median),':',...
-    ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median)), '$$\mu m$$'], 'Fontsize',22,...
-    'Interpreter','latex','LineWidth',2,'Color',nice_blue);
-xl0.LabelVerticalAlignment = 'bottom';
+if strcmp(pixel_2Plot, 'first')==true
 
-% Plot the MODIS optical depth estiamte as a constant horizontal line
-yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median),':',...
-    ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median))], 'Fontsize',22,...
-    'Interpreter','latex','LineWidth',2,'Color',nice_orange);
+    % grab the MODIS LWP to plot
+    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_first); % g/m^2
+
+    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_first),':',...
+        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_first)), '$$\mu m$$'], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
+    xl0.LabelVerticalAlignment = 'bottom';
+
+    % Plot the MODIS optical depth estiamte as a constant horizontal line
+    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_first),':',...
+        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_first))], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
+
+elseif strcmp(pixel_2Plot, 'median')==true
+
+    % grab the MODIS LWP to plot
+    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_median); % g/m^2
+
+    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median),':',...
+        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median)), '$$\mu m$$'], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
+    xl0.LabelVerticalAlignment = 'bottom';
+
+    % Plot the MODIS optical depth estiamte as a constant horizontal line
+    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median),':',...
+        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median))], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
+
+
+elseif strcmp(pixel_2Plot, 'last')==true
+
+    % grab the MODIS LWP to plot
+    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_last); % g/m^2
+
+    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_last),':',...
+        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_last)), '$$\mu m$$'], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
+    xl0.LabelVerticalAlignment = 'bottom';
+
+    % Plot the MODIS optical depth estiamte as a constant horizontal line
+    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_last),':',...
+        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_last))], 'Fontsize',22,...
+        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
+
+else
+
+    error([newline, 'I dont know which MODIS pixel to plot', newline])
+
+end
+
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'left';
 
@@ -97,7 +145,11 @@ yl0.LabelHorizontalAlignment = 'left';
 mean_Nc = mean(vocalsRex.Nc);
 
 dim = [.137 .425 .3 .3];
-str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,'$$LWP_{in-situ} = $$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$'];
+str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,...
+    '$$LWP_{in-situ} = \,$$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$',newline,...
+    '$LWP_{MODIS} = \,$',num2str(round(modis_lwp_2plot,1)),' $g/m^{2}$', newline,...
+    '$LWP_{retrieved} = \,$',num2str(round(GN_outputs.LWP(1),1)),' $g/m^{2}$'];
+    
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',20,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])
 

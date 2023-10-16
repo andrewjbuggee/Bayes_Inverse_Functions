@@ -75,15 +75,18 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     % Define the MODIS folder name
 
     % ----- November 9th at decimal time 0.611 (14:40) -----
-    modisFolder = '/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/'];
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
-    %modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
-    %modisFolder = '/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/';
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
 
 
 
@@ -92,11 +95,16 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     % ***** Define the VOCALS-REx Folder *****
     % ----------------------------------------
 
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
     % ----- November 9 data -----
-    vocalsRexFolder = '/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/';
-    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+    %vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+
+
+    % ----- November 11 data -----
+    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 end
@@ -171,6 +179,7 @@ plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis)
 % above
 bufferTime = 0;
 
+
 % Find the MODIS pixels that overlap with VOCALS-REx
 
 pixels2use = find_MODIS_VOCALS_overlapping_pixels(modis, modisInputs, vocalsRex);
@@ -208,9 +217,25 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 %% CALCULATE RETRIEVAL PARAMETERS
 
 % change the model apriori each loop
-r_top_apriori_percentage = 0.1:0.05:0.4;        % percentage of the TBLUT guess
-r_bot_apriori_percentage = 0.3:0.05:1;        % percentage of the TBLUT guess
-tau_c_apriori_percentage = 0.05:0.05:0.3;        % percentage of the TBLUT guess
+% r_top_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = 0.5:0.1:1;        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = 0.2;        % percentage of the TBLUT guess
+
+% r_top_apriori_percentage = [0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.3];        % percentage of the TBLUT guess
+
+% r_top_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.3, 0.4, 0.5];        % percentage of the TBLUT guess
+
+% r_top_apriori_percentage = [0.1];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
+
+r_top_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
+tau_c_apriori_percentage = [0.2, 0.3];        % percentage of the TBLUT guess
 
 tic
 for rt = 1:length(r_top_apriori_percentage)
@@ -247,7 +272,8 @@ for rt = 1:length(r_top_apriori_percentage)
             [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
             
             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_rt_',num2str(rt),'_rb_', num2str(rb),...
-                '_tc_', num2str(tc), '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs");
+                '_tc_', num2str(tc), '_',char(datetime("today")),'_rev2.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
+                "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
         end
     end
@@ -256,5 +282,6 @@ end
 toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs)
+modis_pixel_2_plot = 'last';
+plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, modis_pixel_2_plot)
 
