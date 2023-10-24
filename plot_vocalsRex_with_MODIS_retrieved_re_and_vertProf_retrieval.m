@@ -10,7 +10,7 @@
 
 %%
 
-function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, pixel_2Plot)
+function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, GN_inputs, pixel_2Plot)
 
 
 % ------------------------------------------------------------------
@@ -157,6 +157,19 @@ set(gcf,'Position',[0 0 1200 630])
 %legend('Vocals Rex In-situ Measurement', 'Desired Retrieval Profile', 'Interpreter','latex', 'Location','best')
 legend({'Vocals Rex In-situ Measurement', 'Retrieved Profile - first pixel','Retrieved Profile - median pixel',...
     'Retrieved Profile - last pixel'}, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+
+% Include a text box stating the percentage of the TBLUT guess that is used
+% as the standard deviation
+% Create textbox
+annotation('textbox',[0.6893 0.0142 0.27 0.04126],...
+    'String',{['$r_{top}$ = ', num2str(sqrt(GN_inputs.model.covariance(1,1,1))/GN_inputs.model.apriori(1,1)*100), '$\%$',...
+    ' $ \; \; \; r_{bot}$ = ', num2str(sqrt(GN_inputs.model.covariance(2,2,1))/GN_inputs.model.apriori(1,2)*100), '$\%$',...
+    ' $\; \; \; \tau_c$ = ', num2str(sqrt(GN_inputs.model.covariance(3,3,1))/GN_inputs.model.apriori(1,3)*100), '$\%$']},...
+    'FitBoxToText','on',...
+    'Interpreter','latex',...
+    'LineWidth', 2,...
+    'FontSize',20,'FontWeight','bold');
 
 
 end
