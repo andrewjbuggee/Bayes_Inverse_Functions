@@ -174,7 +174,7 @@ toc
 % Choose which pixel to plot
 % Options: 'first', 'median', 'last'
 
-modis_pixel_2_plot = 'first';
+modis_pixel_2_plot = 'last';
 plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS
