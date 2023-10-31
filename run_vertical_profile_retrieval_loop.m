@@ -31,32 +31,38 @@ if strcmp(computer_name,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    % Define the MODIS folder name
+
+
+    % ----------------------------------------
+    % ***** Define the MODIS Folder *****
+    % ----------------------------------------
 
     % ----- November 9th at decimal time 0.611 (14:40) -----
-    %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
-    modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+    %modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
     %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/';
+
+
 
     % ----------------------------------------
     % ***** Define the VOCALS-REx Folder *****
     % ----------------------------------------
 
     % ----- November 9th data -----
-%     vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
-%     vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+    vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 
     % ----- November 11 data -----
-    vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
-    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+%     vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+%     vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -165,16 +171,17 @@ Nc_threshold = 1;               % # droplets/cm^3
 modisInputs.flags.useAdvection = true;
 
 tic
-vocalsRex = cropVocalsRex2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
+vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
 toc
 
 
 %% PLOT VOCALS REX DATA WITH MODIS RETRIEVALS
 
 % Choose which pixel to plot
-% Options: 'first', 'median', 'last'
+% This is a number corresponding the the index of
+% vocalsRex.modisIndex_minDist
 
-modis_pixel_2_plot = 'last';
+modis_pixel_2_plot = 3;
 plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS
@@ -237,9 +244,12 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage = [0.9, 1, 1.1];        % percentage of the TBLUT guess
-tau_c_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+% r_top_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [0.9, 1, 1.1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+% Let's try using the MODIS retrieval uncertainty
+
 
 tic
 for rt = 1:length(r_top_apriori_percentage)
@@ -299,7 +309,8 @@ listing = dir(modisInputs.savedCalculations_folderName);
 retreived_cov = [];
 
 % which pixel would you like to plot?
-modis_pixel_2_plot = 'first';
+% This is an index value
+modis_pixel_2_plot = 1;
 
 % compute the L2 norm value of the variance of each retrieved variable
 L2_mag_total_var = nan(1, length(listing));
@@ -321,19 +332,8 @@ for nn = 1:length(listing)
 
 
             % read the retrieval covaraince
-            if strcmp(modis_pixel_2_plot, 'first')==true
+            retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,modis_pixel_2_plot));
 
-                retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,1));
-
-            elseif strcmp(modis_pixel_2_plot, 'median')==true
-
-                retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,2));
-
-            elseif strcmp(modis_pixel_2_plot, 'last')==true
-
-                retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,3));
-
-            end
 
             % to determine which file had the lowest overall variance
             % between all of the retrieved variables, we need to compute

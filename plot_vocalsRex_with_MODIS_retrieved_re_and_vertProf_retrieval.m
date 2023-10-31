@@ -38,9 +38,15 @@ xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
 title('Comparison between in-situ and MODIS retrieved $r_e$', 'Interpreter','latex')
 grid on; grid minor; hold on;
 
+legend_str = cell(1, size(GN_outputs.re_profile, 2));
+
 % Plot the Gauss-Newton Retreval
 for pp = 1:size(GN_outputs.re_profile,2)
     plot(GN_outputs.re_profile(:,pp), GN_outputs.tau_vector(:,pp), 'Color',mySavedColors(pp,'fixed'),'LineStyle',':', 'LineWidth',3)
+
+    % create legend string for each index
+    legend_str{pp} = ['Retrieved Profile - idx = ', num2str(pp)];
+
 end
 
 % Fit a curve to the in-situ data to show the capability we are interested
@@ -80,57 +86,20 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 
 
 % Plot the modis droplet estimate as a constant vertical line
-if strcmp(pixel_2Plot, 'first')==true
+% grab the MODIS LWP to plot
+modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist(pixel_2Plot)); % g/m^2
 
-    % grab the MODIS LWP to plot
-    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_first); % g/m^2
+xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist(pixel_2Plot)),':',...
+    ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist(pixel_2Plot))), '$$\mu m$$'], 'Fontsize',22,...
+    'Interpreter','latex','LineWidth',2,'Color',nice_blue);
+xl0.LabelVerticalAlignment = 'bottom';
 
-    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_first),':',...
-        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_first)), '$$\mu m$$'], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
-    xl0.LabelVerticalAlignment = 'bottom';
-
-    % Plot the MODIS optical depth estiamte as a constant horizontal line
-    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_first),':',...
-        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_first))], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
-
-elseif strcmp(pixel_2Plot, 'median')==true
-
-    % grab the MODIS LWP to plot
-    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_median); % g/m^2
-
-    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median),':',...
-        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_median)), '$$\mu m$$'], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
-    xl0.LabelVerticalAlignment = 'bottom';
-
-    % Plot the MODIS optical depth estiamte as a constant horizontal line
-    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median),':',...
-        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_median))], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
+% Plot the MODIS optical depth estiamte as a constant horizontal line
+yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist(pixel_2Plot)),':',...
+    ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist(pixel_2Plot)))], 'Fontsize',22,...
+    'Interpreter','latex','LineWidth',2,'Color',nice_orange);
 
 
-elseif strcmp(pixel_2Plot, 'last')==true
-
-    % grab the MODIS LWP to plot
-    modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist_last); % g/m^2
-
-    xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_last),':',...
-        ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist_last)), '$$\mu m$$'], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_blue);
-    xl0.LabelVerticalAlignment = 'bottom';
-
-    % Plot the MODIS optical depth estiamte as a constant horizontal line
-    yl0 = yline(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_last),':',...
-        ['MODIS $$\tau_{2.1} = $$',num2str(modis.cloud.optThickness17(vocalsRex.modisIndex_minDist_last))], 'Fontsize',22,...
-        'Interpreter','latex','LineWidth',2,'Color',nice_orange);
-
-else
-
-    error([newline, 'I dont know which MODIS pixel to plot', newline])
-
-end
 
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'left';
@@ -149,14 +118,13 @@ str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newli
     '$$LWP_{in-situ} = \,$$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$',newline,...
     '$LWP_{MODIS} = \,$',num2str(round(modis_lwp_2plot,1)),' $g/m^{2}$', newline,...
     '$LWP_{retrieved} = \,$',num2str(round(GN_outputs.LWP(1),1)),' $g/m^{2}$'];
-    
+
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',20,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])
 
 % Create a Legend with only the two black curves
 %legend('Vocals Rex In-situ Measurement', 'Desired Retrieval Profile', 'Interpreter','latex', 'Location','best')
-legend({'Vocals Rex In-situ Measurement', 'Retrieved Profile - first pixel','Retrieved Profile - median pixel',...
-    'Retrieved Profile - last pixel'}, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+legend(['Vocals Rex In-situ Measurement', legend_str], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
 
 
 % Include a text box stating the percentage of the TBLUT guess that is used
