@@ -81,8 +81,8 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     % Define the MODIS folder name
 
     % ----- November 9th at decimal time 0.611 (14:40) -----
-%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/'];
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/'];
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
@@ -91,8 +91,8 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
-    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-        'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
+%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
 
 
 
@@ -106,11 +106,11 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
 
     % ----- November 9 data -----
-    %vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
     % ----- November 11 data -----
-    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+    %vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 end
@@ -244,9 +244,9 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage = [0.9, 1, 1.1];        % percentage of the TBLUT guess
-tau_c_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+r_top_apriori_percentage = [0.2];        % percentage of the TBLUT guess
+r_bot_apriori_percentage = [0.9, 1];        % percentage of the TBLUT guess
+tau_c_apriori_percentage = [0.05, 0.1];        % percentage of the TBLUT guess
 
 
 
@@ -301,7 +301,7 @@ for rt = 1:length(r_top_apriori_percentage)
             
             if modisInputs.flags.useAdvection == true
 
-            save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+            save([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
                 "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -312,7 +312,7 @@ for rt = 1:length(r_top_apriori_percentage)
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+                save([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
                 "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -337,7 +337,7 @@ plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
-listing = dir(modisInputs.savedCalculations_folderName);
+listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/']);
 
 % save all posterior covariance matrices
 retreived_cov = [];
@@ -358,7 +358,7 @@ for nn = 1:length(listing)
     if length(listing(nn).name)>=57
 
         % check to see if it's a file with a changing covariance
-        if strcmp(listing(nn).name(1:24), 'GN_inputs_outputs_rt-cov')
+        if strcmp(listing(nn).name(1:18), 'GN_inputs_outputs_')
 
             % yes, it is a file that was run with a changing covariance
             % load the data
