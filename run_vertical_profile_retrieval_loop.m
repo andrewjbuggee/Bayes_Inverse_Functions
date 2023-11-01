@@ -244,14 +244,16 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
 
-% r_top_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [0.9, 1, 1.1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+r_top_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+r_bot_apriori_percentage = [0.9, 1, 1.1];        % percentage of the TBLUT guess
+tau_c_apriori_percentage = [0.05, 0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+
 
 % Let's try using the MODIS retrieval uncertainty
-r_top_apriori_percentage = 1;        % percentage of the TBLUT guess
-r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
-tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
+% r_top_apriori_percentage = 1;        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
 
 tic
 for rt = 1:length(r_top_apriori_percentage)
@@ -268,24 +270,25 @@ for rt = 1:length(r_top_apriori_percentage)
             % the percentage above multipled by the TBLUT retrieval is the
             % STD. Square it to get the variance
 
-%             for nn = 1:length(pixels2use.res1km.linearIndex)
-% 
-%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage(rt))^2,...
-%                 (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage(rb))^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage(tc))^2]);
-% 
-%             end
+            for nn = 1:length(pixels2use.res1km.linearIndex)
+
+                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage(rt))^2,...
+                (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage(rb))^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage(tc))^2]);
+
+            end
+
 
             % ------- USE MODIS RETRIEVAL UNCERTAINTY ------
             % use the uncertainty of re as the uncertianty in r_top
             % use 100% as the uncertainty of r_bot
 
-            for nn = 1:length(pixels2use.res1km.linearIndex)
-
-                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn)))^2,...
-                (GN_inputs.model.apriori(nn,2))^2,...
-                (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)))^2]);
-
-            end
+%             for nn = 1:length(pixels2use.res1km.linearIndex)
+% 
+%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
+%                 (GN_inputs.model.apriori(nn,2) * 1)^2,...
+%                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
+% 
+%             end
             
 
 
@@ -293,10 +296,33 @@ for rt = 1:length(r_top_apriori_percentage)
             % Compute the retrieval variables
             [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
             
-            save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+
+            % Save the Outputs!
+            
+            if modisInputs.flags.useAdvection == true
+
+            save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
-                '_',char(datetime("today")),'_rev1.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
+                '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
                 "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+
+%             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
+%                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withAdvection'...
+%                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs");
+
+            else
+
+                save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+                '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
+                '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
+                "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+
+%             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
+%                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withoutAdvection'...
+%                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs");
+
+            end
+
 
         end
     end
@@ -306,7 +332,7 @@ toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
 modis_pixel_2_plot = 1;
-plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, modis_pixel_2_plot)
+plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, GN_inputs, modis_pixel_2_plot)
 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
