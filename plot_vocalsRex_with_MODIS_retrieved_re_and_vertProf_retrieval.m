@@ -10,7 +10,7 @@
 
 %%
 
-function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, GN_inputs, pixel_2Plot)
+function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, pixel_2Plot)
 
 
 % ------------------------------------------------------------------
@@ -35,19 +35,49 @@ errorbar(flipud(vocalsRex.re), vocalsRex.tau', flipud(re_uncertainty), 'horizont
 set(gca,'YDir','reverse')
 ylabel('$\tau$','interpreter','latex','FontSize',35);
 xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
-title('Comparison between in-situ and MODIS retrieved $r_e$', 'Interpreter','latex')
 grid on; grid minor; hold on;
 
-legend_str = cell(1, size(GN_outputs.re_profile, 2));
+if modisInputs.flags.useAdvection==true
 
-% Plot the Gauss-Newton Retreval
-for pp = 1:size(GN_outputs.re_profile,2)
-    plot(GN_outputs.re_profile(:,pp), GN_outputs.tau_vector(:,pp), 'Color',mySavedColors(pp,'fixed'),'LineStyle',':', 'LineWidth',3)
+    title('With Advection - Comparison between in-situ, MODIS retrieval and vertical retrieval', 'Interpreter','latex',...
+        'FontSize', 26)
 
-    % create legend string for each index
-    legend_str{pp} = ['Retrieved Profile - idx = ', num2str(pp)];
+else
+
+    title('Without Advection - Comparison between in-situ, MODIS retrieval and vertical retrieval', 'Interpreter','latex',...
+        'FontSize', 26)
 
 end
+
+legend_str = cell(1, 3*size(GN_outputs.re_profile, 2));
+idx_step = 0;
+
+% Plot the Gauss-Newton Retrieval
+for pp = 1:size(GN_outputs.re_profile,2)
+
+    plot(GN_outputs.re_profile(:,pp), GN_outputs.tau_vector(:,pp), 'Color',mySavedColors(pp,'fixed'),'LineStyle',':', 'LineWidth',3)
+
+
+    % Plot the uncertainty at the top and bottom of the retireval
+    errorbar(GN_outputs.re_profile(1,pp), GN_outputs.tau_vector(1,pp), sqrt(GN_outputs.posterior_cov(1,1,pp)),...
+        'horizontal', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    errorbar(GN_outputs.re_profile(end,pp), GN_outputs.tau_vector(end,pp), sqrt(GN_outputs.posterior_cov(1,1,pp)),...
+        'horizontal', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % create legend string for each index
+    legend_str{3*pp - 2} = ['Retrieved Profile - idx = ', num2str(pp)];
+
+    % create empty legends for the error bar entries
+    idx_step = idx_step+1;
+    legend_str{pp+idx_step} = '';
+
+    idx_step = idx_step+1;
+    legend_str{pp+idx_step} = '';
+
+
+end
+
 
 % Fit a curve to the in-situ data to show the capability we are interested
 % in devloping
@@ -65,6 +95,7 @@ ylim([0, vocalsRex.altitude(end) - vocalsRex.altitude(1)])
 set(gca,'YColor','black')
 ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',30);
 yyaxis left
+ylim([-0.25, vocalsRex.tau(end)*1.15])
 
 % Label cloud top and cloud bottom
 % Create textbox
@@ -86,8 +117,7 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 
 
 % Plot the modis droplet estimate as a constant vertical line
-% grab the MODIS LWP to plot
-modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist(pixel_2Plot)); % g/m^2
+
 
 xl0 = xline(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist(pixel_2Plot)),':',...
     ['MODIS $$r_{2.1} = $$',num2str(modis.cloud.effRadius17(vocalsRex.modisIndex_minDist(pixel_2Plot))), '$$\mu m$$'], 'Fontsize',22,...
@@ -106,7 +136,11 @@ yl0.LabelHorizontalAlignment = 'left';
 
 
 
+% grab the MODIS LWP to plot
+modis_lwp_2plot = modis.cloud.lwp(vocalsRex.modisIndex_minDist(pixel_2Plot)); % g/m^2
 
+% grab the retrieved LWP to plot
+retrieved_LWP = GN_outputs.LWP(pixel_2Plot);        % g/m^2
 
 % Let's compute the mean number concentration within this cloud and print
 % it on our plot
@@ -117,7 +151,7 @@ dim = [.137 .425 .3 .3];
 str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,...
     '$$LWP_{in-situ} = \,$$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$',newline,...
     '$LWP_{MODIS} = \,$',num2str(round(modis_lwp_2plot,1)),' $g/m^{2}$', newline,...
-    '$LWP_{retrieved} = \,$',num2str(round(GN_outputs.LWP(1),1)),' $g/m^{2}$'];
+    '$LWP_{retrieved} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',20,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])

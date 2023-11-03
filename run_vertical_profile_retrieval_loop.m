@@ -168,7 +168,7 @@ Nc_threshold = 1;               % # droplets/cm^3
 % Time is measured in seconds since the startTime
 
 % ---- DO YOU WANT TO USE ADVECTION? -----
-modisInputs.flags.useAdvection = true;
+modisInputs.flags.useAdvection = false;
 
 tic
 vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
@@ -244,9 +244,13 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage = [0.2];        % percentage of the TBLUT guess
-r_bot_apriori_percentage = [0.9, 1];        % percentage of the TBLUT guess
-tau_c_apriori_percentage = [0.05, 0.1];        % percentage of the TBLUT guess
+% r_top_apriori_percentage = [0.1, 0.2];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [1, 1.1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+r_top_apriori_percentage = [0.025, 0.05];        % percentage of the TBLUT guess
+r_bot_apriori_percentage = [1, 1.1];        % percentage of the TBLUT guess
+tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
 
 
 
@@ -301,7 +305,7 @@ for rt = 1:length(r_top_apriori_percentage)
             
             if modisInputs.flags.useAdvection == true
 
-            save([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+            save([modisInputs.savedCalculations_folderName,'Loop_run_2-Nov-2023//GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
                 "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -312,7 +316,7 @@ for rt = 1:length(r_top_apriori_percentage)
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+                save([modisInputs.savedCalculations_folderName,'Loop_run_2-Nov-2023//GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev3.mat'],"GN_outputs","GN_inputs", "r_top_apriori_percentage",...
                 "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -332,12 +336,12 @@ toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
 modis_pixel_2_plot = 1;
-plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, GN_outputs, GN_inputs, modis_pixel_2_plot)
+plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
-listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_31-Oct-2023/']);
+listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_2-Nov-2023/']);
 
 % save all posterior covariance matrices
 retreived_cov = [];
@@ -358,7 +362,7 @@ for nn = 1:length(listing)
     if length(listing(nn).name)>=57
 
         % check to see if it's a file with a changing covariance
-        if strcmp(listing(nn).name(1:18), 'GN_inputs_outputs_')
+        if strcmp(listing(nn).name(end-7:end-4), 'rev3')
 
             % yes, it is a file that was run with a changing covariance
             % load the data
@@ -376,7 +380,7 @@ for nn = 1:length(listing)
 
 
             % plot the retrieved profile
-            plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
+            plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
 
         end
 
