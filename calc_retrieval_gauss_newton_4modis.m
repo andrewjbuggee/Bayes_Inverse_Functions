@@ -275,22 +275,26 @@ for pp = 1:num_pixels
 
 
     
+    % ---------------- COMPUTE LIQUID WATER PATH ------------------
     % Compute the retireved Liquid water path with the final profile
 
     % define the altitude vector
-    z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth, GN_inputs.RT.cloudTop_height(pp), GN_inputs.RT.cloud_layers);        % km - altitude above ground vector
+    z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth,...
+        GN_inputs.RT.cloudTop_height(pp), GN_inputs.RT.cloud_layers)*1e3;        % m - altitude above ground vector
     
     
-    % --------------- ASSUMING GEOMETRIC OPTICS LIMIT ------------------
+    
+    % --------------- assuming geometric optics limit ------------------
     % For now I'm assuming that the extinction efficiency is equal to 2,
-    % which is a good approximation in the geometric optics limit. I can
-    % make this more exact by computing Qe for each r value in my profile
-    % later on
+    % which is a good approximation the scattering particle is larger than
+    % the incident wavelength (r > wl). I can make this more exact by 
+    % computing Qe for each r value in my profile later on
+
     density_liquid_water = 10^6;                % g/m^3
-    re_profile = create_droplet_profile2([retrieval{pp}(1,ii), retrieval{pp}(2,ii)],...
+    re_profile = create_droplet_profile2([retrieval{pp}(1,end), retrieval{pp}(2,end)],...
                     z, 'altitude', GN_inputs.model.profile.type);                               % microns          
 
-    GN_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,ii) * trapz(z, (re_profile*1e-6).^3)/...
+    GN_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,end) * trapz(z, (re_profile*1e-6).^3)/...
                                                                           trapz(z, (re_profile*1e-6).^2);           %g/m^2
     % -------------------------------------------------------------------
 
