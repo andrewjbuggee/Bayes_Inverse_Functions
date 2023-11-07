@@ -52,6 +52,8 @@ end
 legend_str = cell(1, 3*size(GN_outputs.re_profile, 2));
 idx_step = 0;
 
+rms_values  = zeros(1, size(GN_outputs.re_profile,2));
+
 % Plot the Gauss-Newton Retrieval
 for pp = 1:size(GN_outputs.re_profile,2)
 
@@ -65,8 +67,14 @@ for pp = 1:size(GN_outputs.re_profile,2)
     errorbar(GN_outputs.re_profile(end,pp), GN_outputs.tau_vector(end,pp), sqrt(GN_outputs.posterior_cov(1,1,pp)),...
         'horizontal', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
 
+    % Store the rms residual
+    rms_values(pp) = GN_outputs.rms_residual{pp}(end);
+
     % create legend string for each index
-    legend_str{3*pp - 2} = ['Retrieved Profile - idx = ', num2str(pp)];
+%     legend_str{3*pp - 2} = ['Retrieved Profile - idx = ', num2str(pp), ' - rms residual = ', ...
+%         num2str(rms_values(pp))];
+    legend_str{3*pp - 2} = ['idx = ', num2str(pp), ' - rms residual = ', ...
+            num2str(round(rms_values(pp),5))];
 
     % create empty legends for the error bar entries
     idx_step = idx_step+1;
@@ -147,7 +155,7 @@ retrieved_LWP = GN_outputs.LWP(pixel_2Plot);        % g/m^2
 
 mean_Nc = mean(vocalsRex.Nc);
 
-dim = [.137 .425 .3 .3];
+dim = [.137 .35 .3 .3];
 str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,...
     '$$LWP_{in-situ} = \,$$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$',newline,...
     '$LWP_{MODIS} = \,$',num2str(round(modis_lwp_2plot,1)),' $g/m^{2}$', newline,...

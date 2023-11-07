@@ -37,11 +37,11 @@ if strcmp(computer_name,'anbu8374')==true
     % ----------------------------------------
 
     % ----- November 9th at decimal time 0.611 (14:40) -----
-    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+    %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
-    %modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+    modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
@@ -57,12 +57,12 @@ if strcmp(computer_name,'anbu8374')==true
 
 
     % ----- November 9th data -----
-    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+    %vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 
     % ----- November 11 data -----
-    %vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -86,13 +86,13 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
-%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+    %     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+    %         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
-%     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-%         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
+    %     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+    %         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
 
 
 
@@ -136,7 +136,7 @@ loadVOCALSdata = true;
 % % ---------------------------------------------------------------------
 % % ----------- Do you want to use VOCALS-REx pixels? -------------------
 % % ---------------------------------------------------------------------
-% 
+%
 % % If flag below is true, only suitable pixels within the VOCALS-REx data set
 % % will be used
 % useVOCALS_pixelLocations = true;
@@ -161,7 +161,7 @@ end
 % bottom to top. If this is all true, save the vocals rex data
 lwc_threshold = 0.03;           % g/m^3
 stop_at_max_lwc = false;         % truncate profile after the maximum lwc value
-Nc_threshold = 1;               % # droplets/cm^3 
+Nc_threshold = 1;               % # droplets/cm^3
 
 
 % Lets only keep the vocalsRex data we need
@@ -266,9 +266,9 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.05, 0.1, 0.3];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage = [0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage = [1, 1.15];        % percentage of the TBLUT guess
-tau_c_apriori_percentage = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
+r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
+tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
 
 
 
@@ -281,10 +281,10 @@ tau_c_apriori_percentage = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of 
 % tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
 
 tic
-for rt = 1:length(r_top_apriori_percentage)
-    for rb = 1:length(r_bot_apriori_percentage)
-        for tc = 1:length(tau_c_apriori_percentage)
-            
+for rt = 1:length(r_top_apriori_percentage_vector)
+    for rb = 1:length(r_bot_apriori_percentage_vector)
+        for tc = 1:length(tau_c_apriori_percentage_vector)
+
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
@@ -295,10 +295,14 @@ for rt = 1:length(r_top_apriori_percentage)
             % the percentage above multipled by the TBLUT retrieval is the
             % STD. Square it to get the variance
 
+            r_top_apriori_percentage = r_top_apriori_percentage_vector(rt);
+            r_bot_apriori_percentage = r_bot_apriori_percentage_vector(rb);
+            tau_c_apriori_percentage = tau_c_apriori_percentage_vector(tc);
+
             for nn = 1:length(pixels2use.res1km.linearIndex)
 
-                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage(rt))^2,...
-                (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage(rb))^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage(tc))^2]);
+                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage)^2,...
+                    (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage)^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage)^2]);
 
             end
 
@@ -307,44 +311,44 @@ for rt = 1:length(r_top_apriori_percentage)
             % use the uncertainty of re as the uncertianty in r_top
             % use 100% as the uncertainty of r_bot
 
-%             for nn = 1:length(pixels2use.res1km.linearIndex)
-% 
-%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
-%                 (GN_inputs.model.apriori(nn,2) * 1)^2,...
-%                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
-% 
-%             end
-            
+            %             for nn = 1:length(pixels2use.res1km.linearIndex)
+            %
+            %                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
+            %                 (GN_inputs.model.apriori(nn,2) * 1)^2,...
+            %                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
+            %
+            %             end
+
 
 
 
             % Compute the retrieval variables
             [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
-            
+
 
             % Save the Outputs!
-            
+
             if modisInputs.flags.useAdvection == true
 
-            save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
-                '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
-                '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-                "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+                    '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
-%             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
-%                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withAdvection'...
-%                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
+                %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
+                %                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withAdvection'...
+                %                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
-                '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
-                '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-                "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+                    '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
-%             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
-%                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withoutAdvection'...
-%                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
+                %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
+                %                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withoutAdvection'...
+                %                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
 
             end
 
@@ -362,7 +366,7 @@ plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
-listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/']);
+listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_3-Nov-2023/']);
 
 % save all posterior covariance matrices
 retreived_cov = [];
@@ -374,6 +378,9 @@ modis_pixel_2_plot = 2;
 % compute the L2 norm value of the variance of each retrieved variable
 L2_mag_total_var = nan(1, length(listing));
 
+% create an empty array for the RMS residual
+rms_residual = zeros(length(listing), length(vocalsRex.modisIndex_minDist));
+
 
 % loop through and read covariance of retrieved variables
 for nn = 1:length(listing)
@@ -383,7 +390,7 @@ for nn = 1:length(listing)
     if length(listing(nn).name)>=57
 
         % check to see if it's a file with a changing covariance
-        if strcmp(listing(nn).name(end-7:end-4), 'rev4')
+        if strcmp(listing(nn).name(end-7:end-4), 'rev3')
 
             % yes, it is a file that was run with a changing covariance
             % load the data
@@ -403,14 +410,42 @@ for nn = 1:length(listing)
             % plot the retrieved profile
             plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
 
+
+            % Plot the RMS residual versus the r_top and tau_c covariance
+            %             r_top_apriori_percentage(nn) = d.r_top_apriori_percentage;
+            %             r_bot_apriori_percentage(nn) = d.r_bot_apriori_percentage;
+            %             tau_c_apriori_percentage(nn) = d.tau_c_apriori_percentage;
+
+            % Store all values in an array for each file
+
+            for pp = 1:length(d.GN_outputs.rms_residual)
+
+                rms_residual(nn, pp) = d.GN_outputs.rms_residual{pp}(end);
+
+            end
+
+
+
         end
+
+    else
+
+        rms_residual(nn,:) = nan;
 
     end
 
 end
 
+% Find the minimum rms residual
+[min_rms, min_rms_idx] = min(rms_residual, [], 'all');
+% find the file and pixel associated with the minimum rms
+[file_num, pixel_idx] = ind2sub(size(rms_residual), min_rms_idx);
+disp([newline, 'File with smallest rms residual: ', listing(file_num+2).name,newline,...
+    'Pixel with smallest rms residual: ', num2str(pixel_idx), newline,...
+    'The minimum rms residual is: ', num2str(round(min_rms, 6))])
+
 
 % find the collective minimum variance of the retrieved variables
-% first set 
+% first set
 
 [min_val, min_idx] = min(L2_mag_total_var);
