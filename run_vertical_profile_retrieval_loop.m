@@ -37,11 +37,11 @@ if strcmp(computer_name,'anbu8374')==true
     % ----------------------------------------
 
     % ----- November 9th at decimal time 0.611 (14:40) -----
-    %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
 
 
     % ----- November 11th at decimal time 0.604 (14:30) -----
-    modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+    %modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
 
 
     % ----- November 11th at decimal time 0.784 (18:50) -----
@@ -50,18 +50,19 @@ if strcmp(computer_name,'anbu8374')==true
 
 
     % ----------------------------------------
-    % ***** Define the VOCALS-REx Folder *****
+    % ***** Define the VOCALS-REx File *****
     % ----------------------------------------
 
+    vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+
+
     % ----- November 9th data -----
-%     vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
-%     vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 
     % ----- November 11 data -----
-    vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
-    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+    %vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -180,7 +181,7 @@ toc
 % This is a number corresponding the the index of
 % vocalsRex.modisIndex_minDist
 
-modis_pixel_2_plot = 3;
+modis_pixel_2_plot = 2;
 plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS
@@ -243,13 +244,34 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage = [0.05, 0.1, 0.2];        % percentage of the TBLUT guess
-r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
-tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-
 % r_top_apriori_percentage = [0.025, 0.05];        % percentage of the TBLUT guess
 % r_bot_apriori_percentage = [1, 1.1];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+
+% r_top_apriori_percentage = [0.05, 0.1, 0.2];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+% r_top_apriori_percentage = [0.05];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [1.15];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+% r_top_apriori_percentage = [0.1, 0.2];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
+
+
+% r_top_apriori_percentage = [0.05];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage = [0.05, 0.1, 0.3];        % percentage of the TBLUT guess
+
+r_top_apriori_percentage = [0.3];        % percentage of the TBLUT guess
+r_bot_apriori_percentage = [1, 1.15];        % percentage of the TBLUT guess
+tau_c_apriori_percentage = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+
+
+
 
 
 
@@ -304,7 +326,7 @@ for rt = 1:length(r_top_apriori_percentage)
             
             if modisInputs.flags.useAdvection == true
 
-            save([modisInputs.savedCalculations_folderName,'Loop_run_3-Nov-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+            save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                 "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -315,7 +337,7 @@ for rt = 1:length(r_top_apriori_percentage)
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'Loop_run_3-Nov-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
+                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage(rt)*100),...
                 '_rb-cov_', num2str(r_bot_apriori_percentage(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage(tc)*100),...
                 '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                 "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
@@ -340,14 +362,14 @@ plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
-listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_3-Nov-2023/']);
+listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/']);
 
 % save all posterior covariance matrices
 retreived_cov = [];
 
 % which pixel would you like to plot?
 % This is an index value
-modis_pixel_2_plot = 3;
+modis_pixel_2_plot = 2;
 
 % compute the L2 norm value of the variance of each retrieved variable
 L2_mag_total_var = nan(1, length(listing));
@@ -361,7 +383,7 @@ for nn = 1:length(listing)
     if length(listing(nn).name)>=57
 
         % check to see if it's a file with a changing covariance
-        if strcmp(listing(nn).name(end-7:end-4), 'rev3')
+        if strcmp(listing(nn).name(end-7:end-4), 'rev4')
 
             % yes, it is a file that was run with a changing covariance
             % load the data
