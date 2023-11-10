@@ -60,12 +60,17 @@ for pp = 1:size(GN_outputs.re_profile,2)
     plot(GN_outputs.re_profile(:,pp), GN_outputs.tau_vector(:,pp), 'Color',mySavedColors(pp,'fixed'),'LineStyle',':', 'LineWidth',3)
 
 
-    % Plot the uncertainty at the top and bottom of the retireval
+    % Plot the retrieval uncertainty of the radius at cloud top
     errorbar(GN_outputs.re_profile(1,pp), GN_outputs.tau_vector(1,pp), sqrt(GN_outputs.posterior_cov(1,1,pp)),...
         'horizontal', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
 
-    errorbar(GN_outputs.re_profile(end,pp), GN_outputs.tau_vector(end,pp), sqrt(GN_outputs.posterior_cov(1,1,pp)),...
+    % Plot the retrieval uncertainty of the radius at cloud bottom
+    errorbar(GN_outputs.re_profile(end,pp), GN_outputs.tau_vector(end,pp), sqrt(GN_outputs.posterior_cov(2,2,pp)),...
         'horizontal', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % Plot the retrieval uncertainty of the optical depth
+    errorbar(GN_outputs.re_profile(end,pp), GN_outputs.tau_vector(end,pp), sqrt(GN_outputs.posterior_cov(3,3,pp)),...
+        'vertical', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
 
     % Store the rms residual
     rms_values(pp) = GN_outputs.rms_residual{pp}(end);
@@ -73,10 +78,13 @@ for pp = 1:size(GN_outputs.re_profile,2)
     % create legend string for each index
 %     legend_str{3*pp - 2} = ['Retrieved Profile - idx = ', num2str(pp), ' - rms residual = ', ...
 %         num2str(rms_values(pp))];
-    legend_str{3*pp - 2} = ['idx = ', num2str(pp), ' - rms residual = ', ...
+    legend_str{4*pp - 3} = ['idx = ', num2str(pp), ' - rms residual = ', ...
             num2str(round(rms_values(pp),5))];
 
     % create empty legends for the error bar entries
+    idx_step = idx_step+1;
+    legend_str{pp+idx_step} = '';
+
     idx_step = idx_step+1;
     legend_str{pp+idx_step} = '';
 
