@@ -266,9 +266,13 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.05, 0.1, 0.3];        % percentage of the TBLUT guess
 
+% r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+
 r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
-tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+r_bot_apriori_percentage_vector = [1];        % percentage of the TBLUT guess
+tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
 
 
 

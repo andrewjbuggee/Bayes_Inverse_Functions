@@ -157,13 +157,45 @@ for pp = 1:num_pixels
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
         jacobian_diff_guess_prior{pp}(:,ii) = Jacobian*diff_guess_prior{pp}(:,ii);
 
-        % -----------------------------------------------------------------
+
+        % -------------- Compute the new state vector ---------------------
         % -----------------------------------------------------------------
         % new_guess using the previous iteration
         %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
+        
+        % new guess using the modified bound-constraint algorithm (Docicu
+        % et al 2003)
+        % compute the Gauss-Newton direction for each retrevial variable
+        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(:,:,pp)^(-1) *Jacobian)^(-1) * (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
+
+        % fine the maximum non-negative value, a, that satisfies the
+        % following: l< current_guess + new_direction <u
+        % where the variable is bounded: l<x1<u
+        % we want to compute the maximum non-negative feasible step within
+        % our bounds
+        a = 0:0.01:10;
+        new_guess = current_guess + new_direction*a;
+        % let's find the new guesses that satisfy the following
+        % constraints: r_bot< r_top + new_direction <inf  and
+        % 0< r_bot + new_direction <r_top
+        % the first row is r_top. This has to be greater than r_bot which
+        % is the value of the second row.
+        % find the maximum a where this is satisfied
+        [max_a, max_idx] = max(a(new_guess(1,:)>=new_guess(2,:)));
+
+        % if the maximum value of a is 0, then there is no solution space
+        % with the current Gauss-Newton direction that will result in r_top
+        % being larger than r_bot. Should I break the loop in this case?
+
+
+        % ------------------ for cloud bottom radius --------------------
+        % the radius at cloud bottom must be greater than 0 and less than
+        % the radius at cloud top
+        step_size_max = (current_guess(1) - current_guess(2))/new_direction(1);
+        %current_guess(1) + step_size * new_direction(1);
 
         % new_guess using the model prior mean value
-        new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
+        %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
