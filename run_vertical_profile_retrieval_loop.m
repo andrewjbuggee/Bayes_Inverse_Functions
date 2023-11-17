@@ -15,9 +15,9 @@ clear variables
 addLibRadTran_paths;
 scriptPlotting_wht;
 
-%% Load MODIS data
+%% Define the MODIS and VOCALS-REx data paths for the machine you're using
 
-% Load modis data and create input structure
+
 
 % Determine which computer you're using
 computer_name = whatComputer;
@@ -26,48 +26,18 @@ computer_name = whatComputer;
 % find the folder where the water cloud files are stored.
 if strcmp(computer_name,'anbu8374')==true
 
-
-
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-
-
-    % ----------------------------------------
     % ***** Define the MODIS Folder *****
-    % ----------------------------------------
-
-    % ----- November 9th at decimal time 0.611 (14:40) -----
-    %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+    
+    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
 
 
-    % ----- November 11th at decimal time 0.604 (14:30) -----
-    modisFolder = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
-
-
-    % ----- November 11th at decimal time 0.784 (18:50) -----
-    %modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/';
-
-
-
-    % ----------------------------------------
     % ***** Define the VOCALS-REx File *****
-    % ----------------------------------------
 
     vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
-
-
-    % ----- November 9th data -----
-    %vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
-
-
-
-    % ----- November 11 data -----
-    vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
-
-
-
 
 
 
@@ -82,37 +52,36 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
     % Define the MODIS folder name
 
-    % ----- November 9th at decimal time 0.611 (14:40) -----
     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-        'MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/'];
-
-
-    % ----- November 11th at decimal time 0.604 (14:30) -----
-    %     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-    %         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
-
-
-    % ----- November 11th at decimal time 0.784 (18:50) -----
-    %     modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
-    %         'MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
 
 
 
-
-    % ----------------------------------------
     % ***** Define the VOCALS-REx Folder *****
-    % ----------------------------------------
 
     vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
-    % ----- November 9 data -----
-    vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+elseif strcmp(computer_name,'curc')==true
 
 
-    % ----- November 11 data -----
-    %vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+    % Define the MODIS folder name
+
+    modisFolder = '/projects/anbu8374/MODIS_data/';
+
+
+    % ***** Define the VOCALS-REx Folder *****
+
+    vocalsRexFolder = '/projects/anbu8374/VOCALS_REx_data/';
+
+
 
 
 end
@@ -120,16 +89,45 @@ end
 
 
 
-[modis,L1B_fileName] = retrieveMODIS_data(modisFolder);
+%% LOAD MODIS DATA
+
+% Load modis data and create input structure
+
+
+% ----- November 9th at decimal time 0.611 (14:40) -----
+modisData = '2008_11_09/';
+
+
+% ----- November 11th at decimal time 0.604 (14:30) -----
+%     modisData = '2008_11_11_1430/';
+
+
+% ----- November 11th at decimal time 0.784 (18:50) -----
+%modisData = '2008_11_11_1850/';
+
+
+
+[modis,L1B_fileName] = retrieveMODIS_data([modisFolder, modisData]);
 
 % ----- Create a structure defining inputs of the problem -----
 
-modisInputs = create_modis_inputs(modisFolder, L1B_fileName);
+modisInputs = create_modis_inputs([modisFolder, modisData], L1B_fileName);
 
 %% LOAD VOCALS-REx data
 
+
+% ----- November 9 data -----
+vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+
+
+% ----- November 11 data -----
+%vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+
+
+
+
 % ---------------------------------------------------------------------
-% ------------ Do you want to load VOCALS-REx data? -----------------------
+% ------------ Do you want to load VOCALS-REx data? -------------------
 % ---------------------------------------------------------------------
 
 
